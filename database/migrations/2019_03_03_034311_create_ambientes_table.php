@@ -17,7 +17,7 @@ class CreateAmbientesTable extends Migration
             $table->bigIncrements('id');
             $table->string('nombre');
             $table->string('direccion');
-            $table->string('imagen');
+            $table->string('color');
             $table->timestamps();
         });
     }

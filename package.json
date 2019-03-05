@@ -1,4 +1,4 @@
-{
+ {
     "private": true,
     "scripts": {
         "dev": "npm run development",
@@ -24,6 +24,7 @@
         "vue-template-compiler": "^2.6.8"
     },
     "dependencies": {
+        "vue-router": "^3.0.2",
         "vuetify": "^1.5.4"
     }
 }
