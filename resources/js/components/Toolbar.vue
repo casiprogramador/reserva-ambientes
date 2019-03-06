@@ -4,12 +4,14 @@
     <v-toolbar-title>Reserva de ambiente</v-toolbar-title>
     <v-spacer></v-spacer>
     <div class="hidden-sm-and-down">
+      <v-btn flat>Usuarios</v-btn>
       <router-link to="/lista-ambientes">
         <v-btn flat>Ambientes</v-btn>
       </router-link>
       <router-link to="/login">
         <v-btn flat>Ingresar</v-btn>
       </router-link>
+      <v-btn flat>Salir</v-btn>
     </div>
   </v-toolbar>
 </template>

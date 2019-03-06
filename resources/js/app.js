@@ -12,6 +12,9 @@ import Vue from 'vue'
 import Vuetify from 'vuetify'
 
 Vue.use(Vuetify)
+
+import User from './Helpers/User'
+window.User = User
 /**
  * The following block of code may be used to automatically register your
  * Vue components. It will recursively scan this directory for the Vue
