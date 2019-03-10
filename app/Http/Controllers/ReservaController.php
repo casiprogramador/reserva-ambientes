@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Model\Reserva;
+use App\Http\Resources\ReservaResource as ReservaResource;
 
 class ReservaController extends Controller
 {
@@ -13,7 +15,11 @@ class ReservaController extends Controller
      */
     public function index()
     {
-        //
+        return ReservaResource::collection(Reserva::all());
+    }
+
+    public function reservasByAmbiente($id_ambiente){
+        return ReservaResource::collection(Reserva::where('ambiente_id',$id_ambiente)->get());
     }
 
     /**
@@ -24,7 +30,16 @@ class ReservaController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $reserva = new Reserva;
+
+        $reserva->fecha = $request->fecha;
+        $reserva->hora_inicio = $request->hora_inicio;
+        $reserva->hora_fin = $request->hora_fin;
+        $reserva->motivo = $request->motivo;
+        $reserva->ambiente_id = $request->ambiente_id;
+        $reserva->user_id = $request->user_id;
+        $reserva->save();
+        return (new ReservaResource($reserva))->response()->setStatusCode(Response::HTTP_CREATED);
     }
 
     /**

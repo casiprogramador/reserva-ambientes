@@ -1,4 +1,4 @@
- {
+{
     "private": true,
     "scripts": {
         "dev": "npm run development",
@@ -24,6 +24,8 @@
         "vue-template-compiler": "^2.6.8"
     },
     "dependencies": {
+        "moment": "^2.24.0",
+        "v-calendar-scheduler": "^0.7.4",
         "vue-router": "^3.0.2",
         "vuetify": "^1.5.4"
     }

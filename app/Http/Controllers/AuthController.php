@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Requests\SignupRequest;
 use App\User;
-
+use App\Http\Resources\User as UserResource;
 class AuthController extends Controller
 {
      /**
@@ -15,17 +15,21 @@ class AuthController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login','signup']]);
+        $this->middleware('auth:api', ['except' => ['login','signup','getUsers']]);
     }
 
-    /**
+    public function getUsers(){
+        return new UserResource(User::all());
+    }
+
+    /** 
      * Get a JWT via given credentials.
      *
      * @return \Illuminate\Http\JsonResponse
      */
     public function login()
     {
-        $credentials = request(['email', 'password']);
+        $credentials = request(['email', 'password', 'habilitado' => 1]);
 
         if (! $token = auth()->attempt($credentials)) {
             return response()->json(['error' => 'Unauthorized'], 401);

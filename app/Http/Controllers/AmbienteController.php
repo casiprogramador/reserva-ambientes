@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Http\Requests\AmbienteRequest;
 use App\Model\Ambiente;
 use Illuminate\Http\Response;
 use App\Http\Resources\Ambiente as AmbienteResource;
@@ -25,13 +26,13 @@ class AmbienteController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(AmbienteRequest $request)
     {
         $ambiente = new Ambiente;
 
         $ambiente->nombre = $request->nombre;
         $ambiente->direccion = $request->direccion;
-        $ambiente->imagen = $request->imagen;
+        $ambiente->color = $request->color;
 
         $ambiente->save();
         //return response()->json($ambiente, Response::HTTP_CREATED);

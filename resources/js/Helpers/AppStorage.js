@@ -4,7 +4,7 @@ class AppStorage{
     }
 
     storeUser(user){
-        return localStorage.setItem('user',user);
+        return localStorage.setItem('user',JSON.stringify(user));
     }
 
     store(user,token){
@@ -22,7 +22,7 @@ class AppStorage{
     }
 
     getUser(){
-        return localStorage.getItem('user');
+        return JSON.parse(localStorage.getItem('user'));
     }
 }
 

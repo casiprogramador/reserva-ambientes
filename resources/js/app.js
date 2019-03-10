@@ -10,11 +10,26 @@ require('./bootstrap');
 window.Vue = require('vue');
 import Vue from 'vue'
 import Vuetify from 'vuetify'
+import VueScheduler from 'v-calendar-scheduler';
+import moment from 'moment'
+import 'v-calendar-scheduler/lib/main.css';
 
 Vue.use(Vuetify)
+Vue.use(VueScheduler,{locale: 'es',
+labels: {
+    today: 'Hoy',
+    back: 'Atrás',
+    next: 'Siguiente',
+    month: 'Mes',
+    week: 'Semana',
+    day: 'Día',
+    all_day: 'Todo el día'
+ }
+})
 
 import User from './Helpers/User'
 window.User = User
+Vue.prototype.moment = moment
 /**
  * The following block of code may be used to automatically register your
  * Vue components. It will recursively scan this directory for the Vue

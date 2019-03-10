@@ -75,8 +75,8 @@ export default {
             //User.signup(this.form);
             axios.post('/api/auth/signup',this.form)
             .then((res) => {
-              User.resposeAfterLogin(res)
-              this.$router.push({ path: 'lista-ambientes' })  
+              //User.resposeAfterLogin(res)
+              this.$router.push({ path: 'lista-usuarios' })  
             })
             .catch((error) => {
               this.errors = error.response.data.errors
