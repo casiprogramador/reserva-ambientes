@@ -58,10 +58,6 @@
       usuarios: [],
     }),
 
-    computed: {
-      
-    },
-
     created () {
       this.initialize()
     },

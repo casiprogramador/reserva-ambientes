@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Model\Reserva;
+use Illuminate\Http\Response;
 use App\Http\Resources\ReservaResource as ReservaResource;
 
 class ReservaController extends Controller

@@ -11,6 +11,7 @@ import CrearAmbiente from '../components/CrearAmbiente';
 import ListaUsuario from '../components/ListaUsuario';
 
 const routes = [
+    { path: '/', component: ListaAmbientes },
     { path: '/login', component: Login },
     { path: '/lista-ambientes', component: ListaAmbientes },
     { path: '/registrar-ambiente', component: CrearAmbiente },

@@ -14,7 +14,7 @@
                 </div>
               </v-card-title>
               <v-card-actions>
-                <v-btn @click="verReserva(ambiente)" flat dark>Ver Reservas</v-btn>
+                <v-btn outline @click="verReserva(ambiente)" flat dark>Ver Reservas</v-btn>
               </v-card-actions>
             </v-card>
           </v-flex>
@@ -61,8 +61,13 @@ export default {
             
         },
         verReserva(ambiente){
-          localStorage.ambiente_id = ambiente.id
-          this.$router.push({ path: 'reserva' })  
+          if(User.loggedIn()){
+            localStorage.ambiente_id = ambiente.id
+            this.$router.push({ path: 'reserva' })  
+          }else{
+            this.$router.push({ path: 'login' })  
+          }
+          
         },
         nuevoAmbiente(){
           this.$router.push({ path: 'registrar-ambiente' })  

@@ -2,7 +2,6 @@ import AppStorage from './AppStorage'
 
 class User{
     login(data){
-        console.log("Login");
         axios.post('/api/auth/login',data)
         .then(res => this.resposeAfterLogin(res))
         .catch(error=> console.log(error.response))
@@ -28,6 +27,7 @@ class User{
 
     logout(){
         AppStorage.clear()
+        window.location.reload()
     }
 
     nameUser(){

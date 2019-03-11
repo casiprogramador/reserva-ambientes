@@ -11,10 +11,13 @@ window.Vue = require('vue');
 import Vue from 'vue'
 import Vuetify from 'vuetify'
 import VueScheduler from 'v-calendar-scheduler';
+import Notifications from 'vue-notification'
+
 import moment from 'moment'
 import 'v-calendar-scheduler/lib/main.css';
 
 Vue.use(Vuetify)
+Vue.use(Notifications)
 Vue.use(VueScheduler,{locale: 'es',
 labels: {
     today: 'Hoy',

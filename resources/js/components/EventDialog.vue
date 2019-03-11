@@ -20,13 +20,13 @@
                     <p><b>Hora Inicio:</b> </p>
                  </v-flex>
                  <v-flex md6>
-                    <p>{{ event.startTime}}</p>
+                    <p>{{ moment(event.startTime, "HH:mm:ss").format("hh:mm A") }}</p>
                  </v-flex>
                  <v-flex md6>
                     <p><b>Hora Fin:</b></p>
                  </v-flex>
                  <v-flex md6>
-                     <p>{{ event.endTime}}</p>
+                     <p>{{ moment(event.endTime, "HH:mm:ss").format("hh:mm A") }}</p>
                  </v-flex>
                   <v-flex md6>
                     <p><b>Fecha:</b></p>
@@ -55,7 +55,9 @@
 </v-dialog>
 </template>
 <script>
+import moment from 'moment';
 export default {
+
   props: {
      value: Boolean,
      event
@@ -63,7 +65,7 @@ export default {
   computed: {
     show: {
       get () {
-        //console.log('Evento',this.event);
+        
         return this.value
       },
       set (value) {
