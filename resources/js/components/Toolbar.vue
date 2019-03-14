@@ -31,8 +31,13 @@
             </v-list-tile>
         </v-list>
     </v-menu>
+    
+    <v-toolbar-title >
 
-    <v-toolbar-title>Reserva de ambiente</v-toolbar-title>
+            Reserva de ambiente
+
+      </v-toolbar-title>
+
     <v-spacer></v-spacer>
     <div class="hidden-sm-and-down">
       <router-link to="/lista-usuarios" v-if="menu.listaUsuario">
@@ -83,7 +88,13 @@
       methods: {
         salir(){
           User.logout()
+          this.$router.push({ path: 'login' })
+          window.location.reload()
+        },
+        listaAmbientes(){
+          this.$router.push({ path: 'lista-ambientes' })
         }
+
       }
     }
 </script>

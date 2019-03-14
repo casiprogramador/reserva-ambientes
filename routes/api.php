@@ -28,7 +28,9 @@ Route::group([
 
 });
 Route::get('/usuario', 'AuthController@getUsers');
-Route::get('/reserva/{id_ambiente}/ambiente', 'ReservaController@reservasByAmbiente');
+Route::get('/reserva/{id_ambiente}/ambiente/{mes}/mes', 'ReservaController@reservasByAmbiente');
 //reservasByAmbiente
 Route::apiResource('/ambiente','AmbienteController');
 Route::apiResource('/reserva','ReservaController');
+
+Route::any('prueba','ReservaController@enviarNotificacion' );

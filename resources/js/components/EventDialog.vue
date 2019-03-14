@@ -1,5 +1,5 @@
 <template>
-<v-dialog v-model="show" max-width="300px">
+<v-dialog v-model="show" max-width="400px">
   <v-card v-if="event">
       <v-card-title
           class="headline deep-purple white--text"
@@ -42,11 +42,19 @@
         <v-divider></v-divider>
 
         <v-card-actions>
+          <v-btn
+            color="error"
+            flat
+            v-if="event.user_id==usuario.id"
+             @click.stop="borrarEvento(event.id)"
+          >
+            Borrar Evento
+          </v-btn>
           <v-spacer></v-spacer>
           <v-btn
             color="primary"
             flat
-             @click.stop="show=false"
+             @click.stop="cerrarDialog()"
           >
             Cerrar
           </v-btn>
@@ -57,15 +65,35 @@
 <script>
 import moment from 'moment';
 export default {
-
+data() {
+      return {
+          usuario:null
+      }
+},
   props: {
      value: Boolean,
      event
   },
+  methods: {
+    borrarEvento($id_evento){
+      axios.delete(`/api/reserva/${$id_evento}`)
+            .then((res) => {
+               this.show=false
+                this.$emit('borrarEvento', true)
+            })
+            .catch((error) => {
+                    this.$emit('borrarEvento', false)
+            }) 
+    },
+    cerrarDialog(){
+      this.show=false
+    }
+  },
   computed: {
     show: {
       get () {
-        
+        this.usuario = User.nameUser();
+        console.log('Usuario Evento',this.usuario)
         return this.value
       },
       set (value) {

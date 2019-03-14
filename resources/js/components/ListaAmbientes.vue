@@ -21,7 +21,7 @@
 
         </v-layout>
       </v-container>
-      <v-card-text>
+      <v-card-text v-if="loggin">
             <v-btn
               absolute
               dark
@@ -42,11 +42,17 @@
 export default {
   data: function () {
     return {
+      loggin: false,
       listaAmbientes: null
     }
   },
   created: function () {
        this.obtenerAmbientes();
+       if(User.isAdministrator()){
+          this.loggin = true
+      }else{
+           this.loggin = false
+      }
   },
   methods:{
         obtenerAmbientes(){

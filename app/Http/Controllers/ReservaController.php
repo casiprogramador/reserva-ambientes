@@ -4,8 +4,12 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Model\Reserva;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\Response;
+use App\Mail\ReservacionEmail;
 use App\Http\Resources\ReservaResource as ReservaResource;
+use App\Jobs\SendEmailJob;
+use Log;
 
 class ReservaController extends Controller
 {
@@ -19,8 +23,8 @@ class ReservaController extends Controller
         return ReservaResource::collection(Reserva::all());
     }
 
-    public function reservasByAmbiente($id_ambiente){
-        return ReservaResource::collection(Reserva::where('ambiente_id',$id_ambiente)->get());
+    public function reservasByAmbiente($id_ambiente,$mes){
+        return ReservaResource::collection(Reserva::where('ambiente_id',$id_ambiente)->whereMonth('fecha', '=', $mes)->get());
     }
 
     /**
@@ -40,6 +44,7 @@ class ReservaController extends Controller
         $reserva->ambiente_id = $request->ambiente_id;
         $reserva->user_id = $request->user_id;
         $reserva->save();
+        
         return (new ReservaResource($reserva))->response()->setStatusCode(Response::HTTP_CREATED);
     }
 
@@ -74,6 +79,34 @@ class ReservaController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $destroy = Reserva::destroy($id);
+        if ($destroy){
+            $data=[
+                'status'=>'1',
+                'msg'=>'success'
+            ];
+        
+        }else{
+        
+            $data=[
+                'status'=>'0',
+                'msg'=>'fail'
+            ];
+        
+        }
+
+        return response()->json($data, 200); 
+
+    }
+
+    public function enviarNotificacion(){
+        /* $when = now()->addMinutes(1);
+        Mail::to("mchoque@coboser.com")->later($when,new ReservacionEmail());
+        dump('procesando');
+        return 'Mensaje enviado'; */
+        $email = new ReservacionEmail();
+        Log::info("Request cycle without Queues started");
+        $this->dispatch(new SendEmailJob())->delay(300);
+        Log::info("Request cycle without Queues finished");
     }
 }

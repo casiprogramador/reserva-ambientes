@@ -1,0 +1,77 @@
+{
+  "_from": "v-calendar-scheduler",
+  "_id": "v-calendar-scheduler@0.7.4",
+  "_inBundle": false,
+  "_integrity": "sha512-dar1k2utcpRyahloKE/LZUh+pTyRIrWbzME6bvKf8EnPADQUHsn4pJnlPw1S+8y2zP3ShyXxqx28KUIGM3wKzg==",
+  "_location": "/v-calendar-scheduler",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "tag",
+    "registry": true,
+    "raw": "v-calendar-scheduler",
+    "name": "v-calendar-scheduler",
+    "escapedName": "v-calendar-scheduler",
+    "rawSpec": "",
+    "saveSpec": null,
+    "fetchSpec": "latest"
+  },
+  "_requiredBy": [
+    "#USER",
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/v-calendar-scheduler/-/v-calendar-scheduler-0.7.4.tgz",
+  "_shasum": "d769bea2785861a3ec85b436ea05e20b39d55ab7",
+  "_spec": "v-calendar-scheduler",
+  "_where": "C:\\laragon\\www\\reserva-ambientes",
+  "author": {
+    "name": "David Paternina",
+    "email": "david@fanxielab.com"
+  },
+  "bugs": {
+    "url": "https://github.com/dapd007/v-calendar-scheduler/issues"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "moment": "^2.22.1"
+  },
+  "deprecated": false,
+  "description": "Calendar scheduler component for VueJs",
+  "devDependencies": {
+    "autoprefixer": "^7.1.1",
+    "node-sass": "^4.5.3",
+    "node-sass-import": "^1.1.1",
+    "postcss-cli": "^4.1.0",
+    "rimraf": "^2.6.1",
+    "vuepress": "^0.8.4"
+  },
+  "homepage": "https://v-calendar.davidpaternina.com/",
+  "keywords": [
+    "vue",
+    "calendar",
+    "schedule",
+    "events"
+  ],
+  "license": "MIT",
+  "main": "index.js",
+  "name": "v-calendar-scheduler",
+  "peerDependencies": {
+    "vue": "^2.5.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dapd007/v-calendar-scheduler.git"
+  },
+  "scripts": {
+    "build": "npm run build-clean && npm run build-sass && npm run build-autoprefix",
+    "build-autoprefix": "postcss --use autoprefixer --map false --output lib/main.css lib/main.css",
+    "build-clean": "rimraf lib",
+    "build-sass": "node-sass --output-style compressed --source-map true scss/main.scss lib/main.css --importer node_modules/node-sass-import",
+    "deploy": "npm run build && npm run docs",
+    "docs:build": "vuepress build docs",
+    "docs:dev": "vuepress dev docs",
+    "start": "npm run build-sass -- --watch",
+    "start-test": "npm run test-sass -- --watch",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "0.7.4"
+}

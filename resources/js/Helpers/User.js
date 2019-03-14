@@ -27,13 +27,32 @@ class User{
 
     logout(){
         AppStorage.clear()
-        window.location.reload()
     }
 
     nameUser(){
         if(this.loggedIn()){
             return AppStorage.getUser();
         }
+    }
+
+    isAdministrator(){
+        if(this.loggedIn()){
+            let user = AppStorage.getUser();
+            if(user.rol == 'administrador'){
+                return true
+            }
+        }
+        return false
+    }
+
+    isUser(){
+        if(this.loggedIn()){
+            let user = AppStorage.getUser();
+            if(user.rol == 'usuario'){
+                return true
+            }
+        }
+        return false
     }
 }
 
