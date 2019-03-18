@@ -72,7 +72,7 @@ data() {
 },
   props: {
      value: Boolean,
-     event
+     event: Array
   },
   methods: {
     borrarEvento($id_evento){

@@ -24,11 +24,13 @@
         "vue-template-compiler": "^2.6.8"
     },
     "dependencies": {
+        "babel-polyfill": "^6.26.0",
         "moment": "^2.24.0",
         "v-calendar-scheduler": "^0.7.4",
         "vue-notification": "^1.3.16",
         "vue-router": "^3.0.2",
         "vuelidate": "^0.7.4",
-        "vuetify": "^1.5.4"
+        "vuetify": "^1.5.4",
+        "whatwg-fetch": "^3.0.0"
     }
 }

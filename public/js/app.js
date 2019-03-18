@@ -2121,7 +2121,7 @@ __webpack_require__.r(__webpack_exports__);
   },
   props: {
     value: Boolean,
-    event: event
+    event: Array
   },
   methods: {
     borrarEvento: function borrarEvento($id_evento) {
