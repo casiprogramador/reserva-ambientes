@@ -38,7 +38,7 @@ export default {
 
         if ( propsData.enableTimeInputs )
             defaultFields.splice(1, 0, {
-                label: 'Hora',
+                label: 'Hora (24 Hr)',
                 fields: [
                     {
                         name: 'startTime',

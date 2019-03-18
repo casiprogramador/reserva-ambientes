@@ -12,6 +12,7 @@ import Vue from 'vue'
 import Vuetify from 'vuetify'
 import VueScheduler from 'v-calendar-scheduler';
 import Notifications from 'vue-notification'
+import EventBus from './EventBus'
 
 import moment from 'moment'
 import 'v-calendar-scheduler/lib/main.css';
@@ -27,11 +28,13 @@ labels: {
     week: 'Semana',
     day: 'Día',
     all_day: 'Todo el día'
- }
+ },
+ initialDate: new Date()
 })
 
 import User from './Helpers/User'
 window.User = User
+Vue.prototype.$bus = EventBus
 Vue.prototype.moment = moment
 /**
  * The following block of code may be used to automatically register your

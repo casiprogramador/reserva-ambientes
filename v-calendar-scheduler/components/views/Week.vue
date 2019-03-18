@@ -78,6 +78,7 @@
             }
         },
         mounted() {
+            console.log('eventos semana',this.events)
             this.buildCalendar();
         },
         methods: {

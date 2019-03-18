@@ -1,7 +1,7 @@
 <template>
-    <div ref="event_block" class="v-cal-event-item"
+    <div ref="event_block" 
          :title="event.startTime | formatEventTime(use12) + ' - ' + event.displayText"
-         :class="eventClasses"
+         :class="(event.estilo) ? event.estilo : 'v-cal-event-item-user'"
          @click.stop="eventClicked"
          :style="eventStyles">
         <span class="v-cal-event-name">{{ event.displayText }}</span>

@@ -84,6 +84,9 @@ export default {
         }
       }
     },
+    created() {
+        this.$bus.$emit('cambiarTextoTitulo', 'Login')
+    },
     computed: {
       emailErrors () {
         const errors = []
@@ -106,8 +109,9 @@ export default {
           axios.post('/api/auth/login',this.form)
           .then(res => {
               User.resposeAfterLogin(res)
+              this.$bus.$emit('logged', 'User logged')
               this.$router.push({ path: 'lista-ambientes' })
-              window.location.reload()
+              //window.location.reload()
           })
           .catch(error=> {
               console.log(error.response)

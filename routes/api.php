@@ -32,5 +32,5 @@ Route::get('/reserva/{id_ambiente}/ambiente/{mes}/mes', 'ReservaController@reser
 //reservasByAmbiente
 Route::apiResource('/ambiente','AmbienteController');
 Route::apiResource('/reserva','ReservaController');
-
+Route::put('/usuario/{id}', 'AuthController@updateUser');
 Route::any('prueba','ReservaController@enviarNotificacion' );

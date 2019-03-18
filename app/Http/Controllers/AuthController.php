@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Http\Requests\SignupRequest;
 use App\User;
 use App\Http\Resources\User as UserResource;
+use Illuminate\Http\Request;
 class AuthController extends Controller
 {
      /**
@@ -15,7 +15,7 @@ class AuthController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login','signup','getUsers']]);
+        $this->middleware('auth:api', ['except' => ['login','signup','getUsers','updateUser']]);
     }
 
     public function getUsers(){
@@ -27,11 +27,15 @@ class AuthController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function login()
+    public function login(Request $request)
     {
-        $credentials = request(['email', 'password', 'habilitado' => 1]);
 
-        if (! $token = auth()->attempt($credentials)) {
+        //$credentials = request(['email', 'password']);
+
+        $email = $request->input('email');
+        $password = $request->input('password');
+        
+        if (! $token = auth()->attempt(['email' => $email, 'password' => $password, 'habilitado' => 1])) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
@@ -41,6 +45,28 @@ class AuthController extends Controller
     public function signup(SignupRequest $request){
         User::create($request->all());
         return $this->login($request);
+    }
+
+    public function updateUser(Request $request,$id){
+        $this->validate($request,[
+            'name' => 'required',
+            'email' => 'required',
+            'rol' => 'required',
+            'password_enabled'=>'required'
+         ]);
+        $user = User::find($id);
+
+        $user->name = $request->name;
+        $user->email = $request->email;
+        if($request->password_enabled){
+            $user->password = $request->password;
+        }
+        $user->rol = $request->rol;
+        $user->habilitado = $request->habilitado;
+        $user->save();
+
+        //return response($user)->setStatusCode(Response::HTTP_ACCEPTED);
+        return response()->json($user);
     }
 
     /**

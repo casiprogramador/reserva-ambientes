@@ -35,14 +35,13 @@
     import { EventBus } from '../EventBus';
     import EventItem from '../EventItem';
     import IsView from '../mixins/IsView';
-
     export default {
         name: "month",
         mixins: [ IsView ],
         components: { EventItem },
         data() {
             return {
-                weekdays: moment.weekdaysShort(),
+                weekdays: moment.weekdaysShort(true),
                 calendar: [],
             }
         },
@@ -55,14 +54,11 @@
             },
             buildCalendar() {
                 this.calendar = [];
-
                 let temp = moment( this.activeDate ).date( 1 );
                 const monthStart = moment(temp);
                 let m = temp.month();
                 let now = moment();
-
                 this.days = [];
-
                 do {
                     // console.log(temp.toDate());
                     const day = moment(temp);
@@ -79,12 +75,9 @@
                             })
                     };
                     this.days.push(newDay);
-
                     temp.add( 1, 'day' );
                 } while ( temp.month() === m );
-
                 let items = [];
-
                 let paddingOffset = 1;
                 // Some padding at the beginning
                 for ( let p = 0; p < moment( this.activeDate ).date( 1 ).weekday(); p++ )
@@ -95,13 +88,10 @@
                         isToday: false,
                         isDifferentMonth: true,
                     });
-
                     paddingOffset++;
                 }
-
                 // Merge in the array of days
                 items.push.apply( items, this.days );
-
                 // Some padding at the end if required
                 if ( items.length % 7 ) {
                     for ( let p = ( 7 - ( items.length % 7 ) ); p > 0; p-- )
@@ -115,16 +105,16 @@
                         temp.add( 1, 'day' );
                     }
                 }
-
                 // Split the array into "chunks" of seven
+                console.log('calendario an',this.calendar)
                 this.calendar  = items.map( function( e, i ) {
                     return i % 7 === 0 ? items.slice( i, i + 7 ) : null;
                 }).filter( function( e ) { return e; } );
+                console.log('calendario des',this.calendar)
             },
         },
     }
 </script>
 
 <style scoped>
-
 </style>

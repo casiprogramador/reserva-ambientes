@@ -17,7 +17,8 @@
         :event-display="eventDisplay"
         @event-clicked="eventClicked"
         @event-created="eventCreated"
-        @month-changed="monthChanged"/>
+        @month-changed="monthChanged"
+        />
         <EventDialog v-model="showEventDialog" :event="eventSelected" @borrarEvento="eventoBorradoDialog"/>
     </div>
 </template>
@@ -92,7 +93,7 @@ import moment from 'moment';
                 this.$notify({
                   group: 'notificacion',
                   title: 'Ambiente Reservado',
-                  text: 'Se reservo el ambiente',
+                  text: 'Se reservo el ambiente exitosamente',
                   type: 'success',
                 });
             })
@@ -112,14 +113,25 @@ import moment from 'moment';
       cargarEventos(mes){
         ///reserva/{id_ambiente}/ambiente/{$mes}/mes
         this.loading = true
+        //console.log('Usuario logeado',User.nameUser().id)
         axios.get(`/api/reserva/${this.ambiente_id}/ambiente/${mes}/mes`)
             .then((res) => {
                this.loading = false
-               this.events = res.data.data;
+               //console.log('token',res)
+               let events = res.data.data
+               this.events = events.map(function(object) {
+                  object.estilo = (object.user_id == User.nameUser().id) ? 'v-cal-event-item-user':'v-cal-event-item' 
+                  return object;
+                })
+
+               //this.events = res.data.data;
             })
             .catch((error) => {
               this.loading = false
               console.log(error)
+              User.logout()
+              this.$bus.$emit('logged', 'User logged')
+              this.$router.push({ path: 'lista-ambientes' }) 
             }) 
       },
       eventoBorradoDialog(value){

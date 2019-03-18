@@ -308,9 +308,7 @@
                     minDate: this.minDate,
                     maxDate: this.maxDate,
                     use12: this.use12,
-                    events: this.newEvents.filter( event => {
-                        return event.date.isSame(this.activeDate, this.activeView);
-                    })
+                    events: this.newEvents
                 };
 
                 if ( this.activeView === 'week' || this.activeView === 'day') {

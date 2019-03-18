@@ -63,7 +63,7 @@ class AmbienteController extends Controller
 
         $ambiente->nombre = $request->nombre;
         $ambiente->direccion = $request->direccion;
-        $ambiente->imagen = $request->imagen;
+        $ambiente->color = $request->color;
 
         $ambiente->save();
         return (new AmbienteResource($ambiente))->response()->setStatusCode(Response::HTTP_ACCEPTED);

@@ -1817,6 +1817,7 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
@@ -1885,7 +1886,7 @@ __webpack_require__.r(__webpack_exports__);
         _this.$notify({
           group: 'notificacion',
           title: 'Ambiente Reservado',
-          text: 'Se reservo el ambiente',
+          text: 'Se reservo el ambiente exitosamente',
           type: 'success'
         });
       }).catch(function (error) {
@@ -1907,13 +1908,26 @@ __webpack_require__.r(__webpack_exports__);
       var _this2 = this;
 
       ///reserva/{id_ambiente}/ambiente/{$mes}/mes
-      this.loading = true;
+      this.loading = true; //console.log('Usuario logeado',User.nameUser().id)
+
       axios.get("/api/reserva/".concat(this.ambiente_id, "/ambiente/").concat(mes, "/mes")).then(function (res) {
-        _this2.loading = false;
-        _this2.events = res.data.data;
+        _this2.loading = false; //console.log('token',res)
+
+        var events = res.data.data;
+        _this2.events = events.map(function (object) {
+          object.estilo = object.user_id == User.nameUser().id ? 'v-cal-event-item-user' : 'v-cal-event-item';
+          return object;
+        }); //this.events = res.data.data;
       }).catch(function (error) {
         _this2.loading = false;
         console.log(error);
+        User.logout();
+
+        _this2.$bus.$emit('logged', 'User logged');
+
+        _this2.$router.push({
+          path: 'lista-ambientes'
+        });
       });
     },
     eventoBorradoDialog: function eventoBorradoDialog(value) {
@@ -2190,15 +2204,65 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
       loggin: false,
-      listaAmbientes: null
+      listaAmbientes: null,
+      dialogEdit: false,
+      editAmbiente: null,
+      classEditModal: {
+        headline: 'headline',
+        colorFondo: 'blue',
+        colorText: 'white--text'
+      }
     };
   },
   created: function created() {
     this.obtenerAmbientes();
+    this.$bus.$emit('cambiarTextoTitulo', 'Lista de Ambientes');
 
     if (User.isAdministrator()) {
       this.loggin = true;
@@ -2220,6 +2284,7 @@ __webpack_require__.r(__webpack_exports__);
     verReserva: function verReserva(ambiente) {
       if (User.loggedIn()) {
         localStorage.ambiente_id = ambiente.id;
+        this.$bus.$emit('cambiarTextoTitulo', ambiente.nombre);
         this.$router.push({
           path: 'reserva'
         });
@@ -2232,6 +2297,23 @@ __webpack_require__.r(__webpack_exports__);
     nuevoAmbiente: function nuevoAmbiente() {
       this.$router.push({
         path: 'registrar-ambiente'
+      });
+    },
+    editarAmbiente: function editarAmbiente(ambiente) {
+      this.editAmbiente = ambiente;
+      this.classEditModal.colorFondo = this.editAmbiente.color;
+      this.dialogEdit = true;
+    },
+    actualizarAmbiente: function actualizarAmbiente() {
+      var _this2 = this;
+
+      axios.put("/api/ambiente/".concat(this.editAmbiente.id), this.editAmbiente).then(function (res) {
+        //User.resposeAfterLogin(res)
+        _this2.obtenerAmbientes();
+
+        _this2.dialogEdit = false;
+      }).catch(function (error) {
+        _this2.errors = error.response.data.errors;
       });
     }
   }
@@ -2248,6 +2330,77 @@ __webpack_require__.r(__webpack_exports__);
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 //
 //
 //
@@ -2296,6 +2449,7 @@ __webpack_require__.r(__webpack_exports__);
   data: function data() {
     return {
       dialog: false,
+      password_enable: false,
       headers: [{
         text: 'ID',
         value: 'id'
@@ -2312,18 +2466,32 @@ __webpack_require__.r(__webpack_exports__);
         text: 'Estado',
         value: 'habilitado'
       }, {
-        text: 'Fecha Creacion',
+        text: 'Ultima Actualizacion',
         value: 'created_at'
       }, {
         text: 'Opciones',
         value: 'name',
         sortable: false
       }],
+      roles: [{
+        label: 'Usuario',
+        value: 'usuario'
+      }, {
+        label: 'Administrador',
+        value: 'administrador'
+      }],
+      editedItem: _defineProperty({
+        name: '',
+        email: '',
+        password: ''
+      }, "email", ''),
       usuarios: []
     };
   },
   created: function created() {
     this.initialize();
+    this.$bus.$emit('cambiarTextoTitulo', 'Lista de Usuarios');
+    this.editedItem.password_enabled = false;
   },
   methods: {
     initialize: function initialize() {
@@ -2333,13 +2501,40 @@ __webpack_require__.r(__webpack_exports__);
         _this.usuarios = res.data.data;
         console.log('respuesta', res.data.data);
       }).catch(function (error) {
-        _this.errors = error.response.data.errors;
+        User.logout();
+
+        _this.$bus.$emit('logged', 'User logged');
+
+        _this.$router.push({
+          path: 'lista-ambientes'
+        });
       });
+    },
+    editItem: function editItem(item) {
+      this.editedItem = item;
+      this.editedItem.password_enabled = false;
+      this.dialog = true;
     },
     registrarUsuario: function registrarUsuario() {
       this.$router.push({
         path: 'registrar-usuario'
       });
+    },
+    actualizar: function actualizar() {
+      var _this2 = this;
+
+      console.log(this.editedItem);
+      axios.put("/api/usuario/".concat(this.editedItem.id), this.editedItem).then(function (res) {
+        //User.resposeAfterLogin(res)
+        _this2.initialize();
+
+        _this2.dialog = false;
+      }).catch(function (error) {
+        _this2.errors = error.response.data.errors;
+      });
+    },
+    cambiarEstadoPassword: function cambiarEstadoPassword() {
+      this.password_enable = this.editedItem.password_enabled;
     }
   }
 });
@@ -2413,6 +2608,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
+      titulo: 'Reserva Ambientes',
       usuario: null,
       menu: {
         listaUsuario: false,
@@ -2423,36 +2619,51 @@ __webpack_require__.r(__webpack_exports__);
     };
   },
   created: function created() {
-    this.usuario = User.nameUser();
+    var _this = this;
 
-    if (this.usuario) {
-      if (this.usuario.rol === 'administrador') {
-        this.menu.listaUsuario = true;
-        this.menu.listaAmbientes = true;
-        this.menu.ingresar = false;
-        this.menu.salir = true;
-      } else {
-        this.menu.listaUsuario = false;
-        this.menu.listaAmbientes = true;
-        this.menu.ingresar = false;
-        this.menu.salir = true;
-      }
-    }
-
-    console.log('usuario', this.usuario); //this.initialize()
+    this.actualizarMenu();
+    this.$bus.$on('logged', function () {
+      _this.actualizarMenu();
+    });
+    this.$bus.$on('cambiarTextoTitulo', function (texto) {
+      _this.titulo = texto;
+    });
   },
   methods: {
     salir: function salir() {
       User.logout();
+      this.actualizarMenu();
       this.$router.push({
         path: 'login'
       });
-      window.location.reload();
     },
     listaAmbientes: function listaAmbientes() {
       this.$router.push({
         path: 'lista-ambientes'
       });
+    },
+    actualizarMenu: function actualizarMenu() {
+      console.log('Update Toolbar');
+      this.usuario = User.nameUser();
+
+      if (this.usuario) {
+        if (this.usuario.rol === 'administrador') {
+          this.menu.listaUsuario = true;
+          this.menu.listaAmbientes = true;
+          this.menu.ingresar = false;
+          this.menu.salir = true;
+        } else {
+          this.menu.listaUsuario = false;
+          this.menu.listaAmbientes = true;
+          this.menu.ingresar = false;
+          this.menu.salir = true;
+        }
+      } else {
+        this.menu.listaUsuario = false;
+        this.menu.listaAmbientes = true;
+        this.menu.ingresar = true;
+        this.menu.salir = false;
+      }
     }
   }
 });
@@ -2561,6 +2772,9 @@ __webpack_require__.r(__webpack_exports__);
       }
     };
   },
+  created: function created() {
+    this.$bus.$emit('cambiarTextoTitulo', 'Login');
+  },
   computed: {
     emailErrors: function emailErrors() {
       var errors = [];
@@ -2585,11 +2799,12 @@ __webpack_require__.r(__webpack_exports__);
       axios.post('/api/auth/login', this.form).then(function (res) {
         User.resposeAfterLogin(res);
 
+        _this.$bus.$emit('logged', 'User logged');
+
         _this.$router.push({
           path: 'lista-ambientes'
-        });
+        }); //window.location.reload()
 
-        window.location.reload();
       }).catch(function (error) {
         console.log(error.response);
         _this.error_login = true;
@@ -7172,7 +7387,7 @@ exports = module.exports = __webpack_require__(/*! ../../css-loader/lib/css-base
 
 
 // module
-exports.push([module.i, ".v-cal-dialog{font-family: sans-serif;position:fixed;left:0;right:0;top:0;bottom:0;z-index:999;box-sizing:border-box}.v-cal-dialog *{box-sizing:inherit}.v-cal-dialog .v-cal-dialog__bg{background-color:rgba(0,0,0,0.3);position:absolute;width:100%;height:100%}.v-cal-dialog .v-cal-dialog-card{position:absolute;background:#fff;width:90%;top:50%;left:50%;-webkit-transform:translate(-50%, -50%);transform:translate(-50%, -50%);max-width:500px;box-shadow:0 0 6px rgba(0,0,0,0.4)}.v-cal-dialog .v-cal-dialog-card__header{display:flex;align-items:center;padding:20px;border-bottom:1px solid #EAF0F4}.v-cal-dialog .v-cal-dialog-card__header .v-cal-dialog__title{font-size:16px;margin:0}.v-cal-dialog .v-cal-dialog-card__header .v-cal-dialog__close{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;-moz-appearance:none;-webkit-appearance:none;background-color:transparent;border:none;cursor:pointer;display:inline-block;flex-grow:0;flex-shrink:0;font-size:0;height:18px;max-height:18px;max-width:18px;min-height:18px;min-width:18px;outline:none;position:relative;vertical-align:top;width:18px;padding:0;margin-left:auto}.v-cal-dialog .v-cal-dialog-card__header .v-cal-dialog__close::before,.v-cal-dialog .v-cal-dialog-card__header .v-cal-dialog__close::after{background-color:#BCBCCB;content:\"\";display:block;left:50%;position:absolute;top:50%;-webkit-transform:translateX(-50%) translateY(-50%) rotate(45deg);transform:translateX(-50%) translateY(-50%) rotate(45deg);-webkit-transform-origin:center center;transform-origin:center center}.v-cal-dialog .v-cal-dialog-card__header .v-cal-dialog__close::before{height:2px;width:100%}.v-cal-dialog .v-cal-dialog-card__header .v-cal-dialog__close::after{height:100%;width:2px}.v-cal-dialog .v-cal-dialog-card__body{max-height:550px;overflow:auto;padding:20px}.v-cal-dialog .v-cal-fields{display:flex;flex-wrap:wrap}.v-cal-dialog .v-cal-fields .v-cal-input-group{display:flex;flex-wrap:wrap;padding:10px;width:100%}.v-cal-dialog .v-cal-fields .v-cal-input-group>label{width:100%;margin-bottom:5px}.v-cal-dialog .v-cal-fields .v-cal-input-group>label input[type=\"checkbox\"],.v-cal-dialog .v-cal-fields .v-cal-input-group>label input[type=\"radio\"]{margin-right:5px}.v-cal-dialog .v-cal-fields .v-cal-input-group .v-cal-input{width:auto;flex:1}.v-cal-dialog .v-cal-fields .v-cal-input-group .v-cal-input:first-of-type{padding-left:0}.v-cal-dialog .v-cal-fields .v-cal-input-group .v-cal-input:last-of-type{padding-right:0}.v-cal-dialog .v-cal-fields .v-cal-input{padding:10px;width:100%}.v-cal-dialog .v-cal-fields .v-cal-input.is-inline label{margin-bottom:0}.v-cal-dialog .v-cal-fields .v-cal-input.is-radio input,.v-cal-dialog .v-cal-fields .v-cal-input.is-checkbox input{margin-right:5px}.v-cal-dialog .v-cal-fields .v-cal-input label{display:inline-block;margin-bottom:10px}.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"text\"],.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"email\"],.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"password\"],.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"date\"],.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"time\"],.v-cal-dialog .v-cal-fields .v-cal-input textarea,.v-cal-dialog .v-cal-fields .v-cal-input select{transition:all 0.3s ease-in-out;display:block;font-family:sans-serif;width:100%;border:1px solid #E8E9EC;border-radius:4px;padding:10px 12px}.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"text\"]:hover,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"email\"]:hover,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"password\"]:hover,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"date\"]:hover,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"time\"]:hover,.v-cal-dialog .v-cal-fields .v-cal-input textarea:hover,.v-cal-dialog .v-cal-fields .v-cal-input select:hover{border-color:#808495}.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"text\"]:focus,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"text\"]:active,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"email\"]:focus,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"email\"]:active,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"password\"]:focus,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"password\"]:active,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"date\"]:focus,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"date\"]:active,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"time\"]:focus,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"time\"]:active,.v-cal-dialog .v-cal-fields .v-cal-input textarea:focus,.v-cal-dialog .v-cal-fields .v-cal-input textarea:active,.v-cal-dialog .v-cal-fields .v-cal-input select:focus,.v-cal-dialog .v-cal-fields .v-cal-input select:active{border-color:#3B86FF}.v-cal-dialog .v-cal-fields .v-cal-input textarea{min-width:100%;max-width:100%;min-height:100px;max-height:150px}.v-cal-dialog .v-cal-dialog-card__footer{display:flex;align-items:center;padding:20px;border-top:1px solid #EAF0F4;justify-content:flex-end}.v-cal{font-family:sans-serif;font-size:inherit;padding:20px;background-color:#fff;color:#4D4F5C;box-shadow:0 2px 6px rgba(0,0,0,0.04);box-sizing:border-box}.v-cal *{box-sizing:inherit}.v-cal-button{cursor:pointer;background:#fff;padding:8px 18px;border:1px solid #D7DAE2;box-shadow:0 2px 3px rgba(0,0,0,0.05);font-size:13px;transition:all 0.3s ease-in-out}.v-cal-button.is-rounded{border-radius:4px}.v-cal-button.v-cal-button--is-active{background-color:#fff;color:#3B86FF}.v-cal-button:hover{color:#3B86FF;background-color:#fcfcfc}.v-cal-button.is-primary{border-color:#3B86FF;background-color:#3B86FF;color:#fff}.v-cal-button:disabled,.v-cal-button:disabled:hover{background-color:#f0f0f0;color:#d0d0d0;cursor:not-allowed;border-color:#D7DAE2}.v-cal-header{padding:0 0 40px}.v-cal-header__actions{display:flex;justify-content:space-between}.v-cal-header__actions .actions-left,.v-cal-header__actions .actions-right{display:flex}.v-cal-header__actions .v-cal-button:first-child{border-bottom-left-radius:4px;border-top-left-radius:4px}.v-cal-header__actions .v-cal-button:last-child{border-bottom-right-radius:4px;border-top-right-radius:4px}.v-cal-header__actions .v-cal-button:not(:last-child){border-right:none}.v-cal-header__title-bar .v-cal-header__title{margin:0;font-size:18px;font-weight:normal;text-align:center}.v-cal-content{border:1px solid #EAF0F4}.v-cal-content .v-cal-weekdays,.v-cal-content .v-cal-days{display:flex}.v-cal-content .v-cal-event-item{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;position:relative;flex-grow:1;background-color:#3B86FF;color:#3B86FF;border-radius:4px;padding:0px 0px;font-size: 12px;text-align:left;white-space:nowrap;overflow:hidden;cursor:pointer}.v-cal-content .v-cal-event-item::after{content:'';display:block;position:absolute;width:14px;height:100%;top:0;right:0;background:linear-gradient(to right, transparent 0%, currentColor 75%)}.v-cal-content .v-cal-event-item:not(:last-child){margin-bottom:1px}.v-cal-content .v-cal-event-item .v-cal-event-time,.v-cal-content .v-cal-event-item .v-cal-event-name{color:#fff}.v-cal-content .v-cal-event-item .v-cal-event-time{font-weight:bold;font-size:.85rem}.v-cal-content .v-cal-event-item .v-cal-event-name{margin-left:5px}.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day,.v-cal-content.v-cal-content--week .v-cal-days .v-cal-day,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-day{background:#fff}.v-cal-content.v-cal-content--month .v-cal-weekdays,.v-cal-content.v-cal-content--week .v-cal-weekdays,.v-cal-content.v-cal-content--day .v-cal-weekdays{background-color:#F5F6FA;color:#A3A6B4;text-transform:uppercase;font-size:.75rem;font-weight:bold;text-align:center;border-bottom:1px solid #EAF0F4}.v-cal-content.v-cal-content--month .v-cal-weekdays .v-cal-weekday-item,.v-cal-content.v-cal-content--week .v-cal-weekdays .v-cal-weekday-item,.v-cal-content.v-cal-content--day .v-cal-weekdays .v-cal-weekday-item{padding:15px 0}.v-cal-content.v-cal-content--month .v-cal-weekdays .v-cal-weekday-item,.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day{width:14.28571%}.v-cal-content.v-cal-content--month .v-cal-days:not(:last-child){border-bottom:1px solid #EAF0F4}.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day{transition:all 0.3s ease-in-out;position:relative;text-align:right;min-height:140px;padding-bottom:2px}.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day.v-cal-day--month{overflow:hidden}.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day.v-cal-day--month.is-extended{height:auto}.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day.is-today{background-color:#F5F6FA}.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day.is-different-month{color:rgba(67,66,93,0.3)}.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day:not(:last-child){border-right:1px solid #EAF0F4}.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day:not(.is-disabled):hover{background-color:#fcfcfc}.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day .v-cal-day__number{display:block;font-size:.75rem;padding:10px}.v-cal-content.v-cal-content--month .v-cal-day.is-disabled,.v-cal-content.v-cal-content--week .v-cal-day.is-disabled{background-color:#f0f0f0;color:#b0b0b0}.v-cal-content.v-cal-content--week .v-cal-hour.all-day,.v-cal-content.v-cal-content--week .v-cal-day__hour-block.all-day,.v-cal-content.v-cal-content--day .v-cal-hour.all-day,.v-cal-content.v-cal-content--day .v-cal-day__hour-block.all-day{border-width:3px !important}.v-cal-content.v-cal-content--week .v-cal-times,.v-cal-content.v-cal-content--day .v-cal-times{background:#fff;font-size:.8125rem;font-weight:normal;border-right:1px solid #EAF0F4}.v-cal-content.v-cal-content--week .v-cal-times .v-cal-hour,.v-cal-content.v-cal-content--day .v-cal-times .v-cal-hour{padding:15px}.v-cal-content.v-cal-content--week .v-cal-times .v-cal-hour.is-now,.v-cal-content.v-cal-content--day .v-cal-times .v-cal-hour.is-now{font-weight:bold}.v-cal-content.v-cal-content--week .v-cal-times .v-cal-hour:not(:last-child),.v-cal-content.v-cal-content--day .v-cal-times .v-cal-hour:not(:last-child){border-bottom:1px solid #EAF0F4}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper{display:flex;flex-grow:1}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-day,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-day{flex-grow:1}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-day.is-today,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-day.is-today{background-color:#F5F6FA}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-day.is-different-month,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-day.is-different-month{color:rgba(67,66,93,0.3)}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-day:not(:last-child),.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-day:not(:last-child){border-right:1px solid #EAF0F4}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block{transition:all 0.3s ease-in-out;padding:15px;position:relative;background-color:rgba(0,0,0,0)}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block:hover,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block:hover{background-color:#fcfcfc}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block:not(:last-child),.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block:not(:last-child){border-bottom:1px solid #EAF0F4}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block .v-cal-day__hour-block-fill,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block .v-cal-day__hour-block-fill{display:block;font-size:.8125rem;visibility:hidden}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block .v-cal-day__hour-content,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block .v-cal-day__hour-content{position:absolute;left:0;top:0;right:0;bottom:0;width:100%;height:100%}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-event-list,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-event-list{display:flex}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-event-list.tiny-events,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-event-list.tiny-events{display:flex;flex-wrap:wrap}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-event-list.tiny-events .v-cal-event-item,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-event-list.tiny-events .v-cal-event-item{flex:none;width:15px;height:15px;padding:0;font-size:0;border-radius:50%}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-event-list.tiny-events .v-cal-event-item:not(:last-child),.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-event-list.tiny-events .v-cal-event-item:not(:last-child){margin-right:2px;margin-bottom:2px}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-event-item,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-event-item{z-index:1;box-shadow:0 0 5px rgba(0,0,0,0.25);width:100%;padding:3px 14px;font-size:.9rem}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-event-item.is-overlapping,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-event-item.is-overlapping{flex:none}.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.has-marker::after,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.has-marker::before,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.has-marker::after,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.has-marker::before{content:'';display:block;position:absolute;top:0;left:0;background-color:#3B86FF}.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now::after,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now::after{width:calc(100% + 1px);height:1px}.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now::before,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now::before{width:9px;height:9px;border-radius:50%;-webkit-transform:translate(-50%, -50%);transform:translate(-50%, -50%)}.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-10::after,.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-10::before,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-10::after,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-10::before,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-10::after,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-10::before,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-10::after,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-10::before{top:16.66667%}.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-20::after,.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-20::before,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-20::after,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-20::before,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-20::after,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-20::before,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-20::after,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-20::before{top:33.33333%}.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-30::after,.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-30::before,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-30::after,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-30::before,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-30::after,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-30::before,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-30::after,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-30::before{top:50%}.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-40::after,.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-40::before,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-40::after,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-40::before,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-40::after,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-40::before,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-40::after,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-40::before{top:66.66667%}.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-50::after,.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-50::before,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-50::after,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-50::before,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-50::after,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-50::before,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-50::after,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-50::before{top:83.33333%}.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-60::after,.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-60::before,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-60::after,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-60::before,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-60::after,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-60::before,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-60::after,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-60::before{top:100%}.v-cal-content.v-cal-content--week .v-cal-weekdays{max-height:3rem;text-transform:none}.v-cal-content.v-cal-content--week .v-cal-weekdays .v-cal-weekdays__padding{visibility:hidden}.v-cal-content.v-cal-content--week .v-cal-weekdays .v-cal-weekday__wrapper{display:flex;flex-grow:1}.v-cal-content.v-cal-content--week .v-cal-weekdays .v-cal-weekday__wrapper .v-cal-weekday-item{flex-grow:1}.v-cal-content.v-cal-content--day .v-cal-weekdays{display:flex;text-transform:none}.v-cal-content.v-cal-content--day .v-cal-weekdays .v-cal-weekday-item{flex-grow:1}", ""]);
+exports.push([module.i, ".v-cal-dialog{font-family: sans-serif;position:fixed;left:0;right:0;top:0;bottom:0;z-index:999;box-sizing:border-box}.v-cal-dialog *{box-sizing:inherit}.v-cal-dialog .v-cal-dialog__bg{background-color:rgba(0,0,0,0.3);position:absolute;width:100%;height:100%}.v-cal-dialog .v-cal-dialog-card{position:absolute;background:#fff;width:90%;top:50%;left:50%;-webkit-transform:translate(-50%, -50%);transform:translate(-50%, -50%);max-width:500px;box-shadow:0 0 6px rgba(0,0,0,0.4)}.v-cal-dialog .v-cal-dialog-card__header{display:flex;align-items:center;padding:20px;border-bottom:1px solid #EAF0F4}.v-cal-dialog .v-cal-dialog-card__header .v-cal-dialog__title{font-size:16px;margin:0}.v-cal-dialog .v-cal-dialog-card__header .v-cal-dialog__close{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;-moz-appearance:none;-webkit-appearance:none;background-color:transparent;border:none;cursor:pointer;display:inline-block;flex-grow:0;flex-shrink:0;font-size:0;height:18px;max-height:18px;max-width:18px;min-height:18px;min-width:18px;outline:none;position:relative;vertical-align:top;width:18px;padding:0;margin-left:auto}.v-cal-dialog .v-cal-dialog-card__header .v-cal-dialog__close::before,.v-cal-dialog .v-cal-dialog-card__header .v-cal-dialog__close::after{background-color:#BCBCCB;content:\"\";display:block;left:50%;position:absolute;top:50%;-webkit-transform:translateX(-50%) translateY(-50%) rotate(45deg);transform:translateX(-50%) translateY(-50%) rotate(45deg);-webkit-transform-origin:center center;transform-origin:center center}.v-cal-dialog .v-cal-dialog-card__header .v-cal-dialog__close::before{height:2px;width:100%}.v-cal-dialog .v-cal-dialog-card__header .v-cal-dialog__close::after{height:100%;width:2px}.v-cal-dialog .v-cal-dialog-card__body{max-height:550px;overflow:auto;padding:20px}.v-cal-dialog .v-cal-fields{display:flex;flex-wrap:wrap}.v-cal-dialog .v-cal-fields .v-cal-input-group{display:flex;flex-wrap:wrap;padding:10px;width:100%}.v-cal-dialog .v-cal-fields .v-cal-input-group>label{width:100%;margin-bottom:5px}.v-cal-dialog .v-cal-fields .v-cal-input-group>label input[type=\"checkbox\"],.v-cal-dialog .v-cal-fields .v-cal-input-group>label input[type=\"radio\"]{margin-right:5px}.v-cal-dialog .v-cal-fields .v-cal-input-group .v-cal-input{width:auto;flex:1}.v-cal-dialog .v-cal-fields .v-cal-input-group .v-cal-input:first-of-type{padding-left:0}.v-cal-dialog .v-cal-fields .v-cal-input-group .v-cal-input:last-of-type{padding-right:0}.v-cal-dialog .v-cal-fields .v-cal-input{padding:10px;width:100%}.v-cal-dialog .v-cal-fields .v-cal-input.is-inline label{margin-bottom:0}.v-cal-dialog .v-cal-fields .v-cal-input.is-radio input,.v-cal-dialog .v-cal-fields .v-cal-input.is-checkbox input{margin-right:5px}.v-cal-dialog .v-cal-fields .v-cal-input label{display:inline-block;margin-bottom:10px}.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"text\"],.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"email\"],.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"password\"],.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"date\"],.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"time\"],.v-cal-dialog .v-cal-fields .v-cal-input textarea,.v-cal-dialog .v-cal-fields .v-cal-input select{transition:all 0.3s ease-in-out;display:block;font-family:sans-serif;width:100%;border:1px solid #E8E9EC;border-radius:4px;padding:10px 12px}.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"text\"]:hover,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"email\"]:hover,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"password\"]:hover,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"date\"]:hover,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"time\"]:hover,.v-cal-dialog .v-cal-fields .v-cal-input textarea:hover,.v-cal-dialog .v-cal-fields .v-cal-input select:hover{border-color:#808495}.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"text\"]:focus,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"text\"]:active,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"email\"]:focus,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"email\"]:active,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"password\"]:focus,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"password\"]:active,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"date\"]:focus,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"date\"]:active,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"time\"]:focus,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"time\"]:active,.v-cal-dialog .v-cal-fields .v-cal-input textarea:focus,.v-cal-dialog .v-cal-fields .v-cal-input textarea:active,.v-cal-dialog .v-cal-fields .v-cal-input select:focus,.v-cal-dialog .v-cal-fields .v-cal-input select:active{border-color:#3B86FF}.v-cal-dialog .v-cal-fields .v-cal-input textarea{min-width:100%;max-width:100%;min-height:100px;max-height:150px}.v-cal-dialog .v-cal-dialog-card__footer{display:flex;align-items:center;padding:20px;border-top:1px solid #EAF0F4;justify-content:flex-end}.v-cal{font-family:sans-serif;font-size:inherit;padding:20px;background-color:#fff;color:#4D4F5C;box-shadow:0 2px 6px rgba(0,0,0,0.04);box-sizing:border-box}.v-cal *{box-sizing:inherit}.v-cal-button{cursor:pointer;background:#fff;padding:8px 18px;border:1px solid #D7DAE2;box-shadow:0 2px 3px rgba(0,0,0,0.05);font-size:13px;transition:all 0.3s ease-in-out}.v-cal-button.is-rounded{border-radius:4px}.v-cal-button.v-cal-button--is-active{background-color:#fff;color:#3B86FF}.v-cal-button:hover{color:#3B86FF;background-color:#fcfcfc}.v-cal-button.is-primary{border-color:#3B86FF;background-color:#3B86FF;color:#fff}.v-cal-button:disabled,.v-cal-button:disabled:hover{background-color:#f0f0f0;color:#d0d0d0;cursor:not-allowed;border-color:#D7DAE2}.v-cal-header{padding:0 0 40px}.v-cal-header__actions{display:flex;justify-content:space-between}.v-cal-header__actions .actions-left,.v-cal-header__actions .actions-right{display:flex}.v-cal-header__actions .v-cal-button:first-child{border-bottom-left-radius:4px;border-top-left-radius:4px}.v-cal-header__actions .v-cal-button:last-child{border-bottom-right-radius:4px;border-top-right-radius:4px}.v-cal-header__actions .v-cal-button:not(:last-child){border-right:none}.v-cal-header__title-bar .v-cal-header__title{margin:0;font-size:18px;font-weight:normal;text-align:center}.v-cal-content{border:1px solid #EAF0F4}.v-cal-content .v-cal-weekdays,.v-cal-content .v-cal-days{display:flex}.v-cal-content .v-cal-event-item{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;position:relative;flex-grow:1;background-color:#3B86FF;color:#3B86FF;border-radius:4px;padding:0px 0px;font-size: 12px;text-align:left;white-space:nowrap;overflow:hidden;cursor:pointer} .v-cal-event-item-user{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;position:relative;flex-grow:1;background-color:#28943a;color:#ffffff;border-radius:4px;padding:0px 5px;font-size: 12px;text-align:left;white-space:nowrap;overflow:hidden;cursor:pointer}.v-cal-content .v-cal-event-item::after{content:'';display:block;position:absolute;width:14px;height:100%;top:0;right:0;background:linear-gradient(to right, transparent 0%, currentColor 75%)}.v-cal-content .v-cal-event-item:not(:last-child){margin-bottom:1px}.v-cal-content .v-cal-event-item .v-cal-event-time,.v-cal-content .v-cal-event-item .v-cal-event-name{color:#fff}.v-cal-content .v-cal-event-item .v-cal-event-time{font-weight:bold;font-size:.85rem}.v-cal-content .v-cal-event-item .v-cal-event-name{margin-left:5px}.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day,.v-cal-content.v-cal-content--week .v-cal-days .v-cal-day,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-day{background:#fff}.v-cal-content.v-cal-content--month .v-cal-weekdays,.v-cal-content.v-cal-content--week .v-cal-weekdays,.v-cal-content.v-cal-content--day .v-cal-weekdays{background-color:#F5F6FA;color:#A3A6B4;text-transform:uppercase;font-size:.75rem;font-weight:bold;text-align:center;border-bottom:1px solid #EAF0F4}.v-cal-content.v-cal-content--month .v-cal-weekdays .v-cal-weekday-item,.v-cal-content.v-cal-content--week .v-cal-weekdays .v-cal-weekday-item,.v-cal-content.v-cal-content--day .v-cal-weekdays .v-cal-weekday-item{padding:15px 0}.v-cal-content.v-cal-content--month .v-cal-weekdays .v-cal-weekday-item,.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day{width:14.28571%}.v-cal-content.v-cal-content--month .v-cal-days:not(:last-child){border-bottom:1px solid #EAF0F4}.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day{transition:all 0.3s ease-in-out;position:relative;text-align:right;min-height:140px;padding-bottom:2px}.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day.v-cal-day--month{overflow:hidden}.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day.v-cal-day--month.is-extended{height:auto}.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day.is-today{background-color:#F5F6FA}.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day.is-different-month{color:rgba(67,66,93,0.3)}.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day:not(:last-child){border-right:1px solid #EAF0F4}.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day:not(.is-disabled):hover{background-color:#fcfcfc}.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day .v-cal-day__number{display:block;font-size:.75rem;padding:10px}.v-cal-content.v-cal-content--month .v-cal-day.is-disabled,.v-cal-content.v-cal-content--week .v-cal-day.is-disabled{background-color:#f0f0f0;color:#b0b0b0}.v-cal-content.v-cal-content--week .v-cal-hour.all-day,.v-cal-content.v-cal-content--week .v-cal-day__hour-block.all-day,.v-cal-content.v-cal-content--day .v-cal-hour.all-day,.v-cal-content.v-cal-content--day .v-cal-day__hour-block.all-day{border-width:3px !important}.v-cal-content.v-cal-content--week .v-cal-times,.v-cal-content.v-cal-content--day .v-cal-times{background:#fff;font-size:.8125rem;font-weight:normal;border-right:1px solid #EAF0F4}.v-cal-content.v-cal-content--week .v-cal-times .v-cal-hour,.v-cal-content.v-cal-content--day .v-cal-times .v-cal-hour{padding:15px}.v-cal-content.v-cal-content--week .v-cal-times .v-cal-hour.is-now,.v-cal-content.v-cal-content--day .v-cal-times .v-cal-hour.is-now{font-weight:bold}.v-cal-content.v-cal-content--week .v-cal-times .v-cal-hour:not(:last-child),.v-cal-content.v-cal-content--day .v-cal-times .v-cal-hour:not(:last-child){border-bottom:1px solid #EAF0F4}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper{display:flex;flex-grow:1}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-day,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-day{flex-grow:1}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-day.is-today,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-day.is-today{background-color:#F5F6FA}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-day.is-different-month,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-day.is-different-month{color:rgba(67,66,93,0.3)}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-day:not(:last-child),.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-day:not(:last-child){border-right:1px solid #EAF0F4}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block{transition:all 0.3s ease-in-out;padding:15px;position:relative;background-color:rgba(0,0,0,0)}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block:hover,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block:hover{background-color:#fcfcfc}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block:not(:last-child),.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block:not(:last-child){border-bottom:1px solid #EAF0F4}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block .v-cal-day__hour-block-fill,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block .v-cal-day__hour-block-fill{display:block;font-size:.8125rem;visibility:hidden}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block .v-cal-day__hour-content,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block .v-cal-day__hour-content{position:absolute;left:0;top:0;right:0;bottom:0;width:100%;height:100%}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-event-list,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-event-list{display:flex}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-event-list.tiny-events,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-event-list.tiny-events{display:flex;flex-wrap:wrap}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-event-list.tiny-events .v-cal-event-item,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-event-list.tiny-events .v-cal-event-item{flex:none;width:15px;height:15px;padding:0;font-size:0;border-radius:50%}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-event-list.tiny-events .v-cal-event-item:not(:last-child),.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-event-list.tiny-events .v-cal-event-item:not(:last-child){margin-right:2px;margin-bottom:2px}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-event-item,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-event-item{z-index:1;box-shadow:0 0 5px rgba(0,0,0,0.25);width:100%;padding:3px 14px;font-size:.9rem}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-event-item.is-overlapping,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-event-item.is-overlapping{flex:none}.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.has-marker::after,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.has-marker::before,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.has-marker::after,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.has-marker::before{content:'';display:block;position:absolute;top:0;left:0;background-color:#3B86FF}.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now::after,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now::after{width:calc(100% + 1px);height:1px}.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now::before,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now::before{width:9px;height:9px;border-radius:50%;-webkit-transform:translate(-50%, -50%);transform:translate(-50%, -50%)}.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-10::after,.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-10::before,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-10::after,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-10::before,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-10::after,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-10::before,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-10::after,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-10::before{top:16.66667%}.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-20::after,.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-20::before,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-20::after,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-20::before,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-20::after,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-20::before,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-20::after,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-20::before{top:33.33333%}.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-30::after,.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-30::before,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-30::after,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-30::before,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-30::after,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-30::before,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-30::after,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-30::before{top:50%}.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-40::after,.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-40::before,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-40::after,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-40::before,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-40::after,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-40::before,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-40::after,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-40::before{top:66.66667%}.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-50::after,.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-50::before,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-50::after,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-50::before,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-50::after,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-50::before,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-50::after,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-50::before{top:83.33333%}.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-60::after,.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-60::before,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-60::after,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-60::before,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-60::after,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-60::before,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-60::after,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-60::before{top:100%}.v-cal-content.v-cal-content--week .v-cal-weekdays{max-height:3rem;text-transform:none}.v-cal-content.v-cal-content--week .v-cal-weekdays .v-cal-weekdays__padding{visibility:hidden}.v-cal-content.v-cal-content--week .v-cal-weekdays .v-cal-weekday__wrapper{display:flex;flex-grow:1}.v-cal-content.v-cal-content--week .v-cal-weekdays .v-cal-weekday__wrapper .v-cal-weekday-item{flex-grow:1}.v-cal-content.v-cal-content--day .v-cal-weekdays{display:flex;text-transform:none}.v-cal-content.v-cal-content--day .v-cal-weekdays .v-cal-weekday-item{flex-grow:1}", ""]);
 
 // exports
 
@@ -56405,7 +56620,7 @@ function open(propsData) {
 
         if ( propsData.enableTimeInputs )
             defaultFields.splice(1, 0, {
-                label: 'Hora',
+                label: 'Hora (24 Hr)',
                 fields: [
                     {
                         name: 'startTime',
@@ -57441,9 +57656,7 @@ __webpack_require__.r(__webpack_exports__);
                 minDate: this.minDate,
                 maxDate: this.maxDate,
                 use12: this.use12,
-                events: this.newEvents.filter( event => {
-                    return event.date.isSame(this.activeDate, this.activeView);
-                })
+                events: this.newEvents
             };
 
             if ( this.activeView === 'week' || this.activeView === 'day') {
@@ -57875,14 +58088,13 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
 /* harmony default export */ __webpack_exports__["default"] = ({
     name: "month",
     mixins: [ _mixins_IsView__WEBPACK_IMPORTED_MODULE_3__["default"] ],
     components: { EventItem: _EventItem__WEBPACK_IMPORTED_MODULE_2__["default"] },
     data() {
         return {
-            weekdays: moment__WEBPACK_IMPORTED_MODULE_0___default.a.weekdaysShort(),
+            weekdays: moment__WEBPACK_IMPORTED_MODULE_0___default.a.weekdaysShort(true),
             calendar: [],
         }
     },
@@ -57895,14 +58107,11 @@ __webpack_require__.r(__webpack_exports__);
         },
         buildCalendar() {
             this.calendar = [];
-
             let temp = moment__WEBPACK_IMPORTED_MODULE_0___default()( this.activeDate ).date( 1 );
             const monthStart = moment__WEBPACK_IMPORTED_MODULE_0___default()(temp);
             let m = temp.month();
             let now = moment__WEBPACK_IMPORTED_MODULE_0___default()();
-
             this.days = [];
-
             do {
                 // console.log(temp.toDate());
                 const day = moment__WEBPACK_IMPORTED_MODULE_0___default()(temp);
@@ -57919,12 +58128,9 @@ __webpack_require__.r(__webpack_exports__);
                         })
                 };
                 this.days.push(newDay);
-
                 temp.add( 1, 'day' );
             } while ( temp.month() === m );
-
             let items = [];
-
             let paddingOffset = 1;
             // Some padding at the beginning
             for ( let p = 0; p < moment__WEBPACK_IMPORTED_MODULE_0___default()( this.activeDate ).date( 1 ).weekday(); p++ )
@@ -57935,13 +58141,10 @@ __webpack_require__.r(__webpack_exports__);
                     isToday: false,
                     isDifferentMonth: true,
                 });
-
                 paddingOffset++;
             }
-
             // Merge in the array of days
             items.push.apply( items, this.days );
-
             // Some padding at the end if required
             if ( items.length % 7 ) {
                 for ( let p = ( 7 - ( items.length % 7 ) ); p > 0; p-- )
@@ -57955,11 +58158,12 @@ __webpack_require__.r(__webpack_exports__);
                     temp.add( 1, 'day' );
                 }
             }
-
             // Split the array into "chunks" of seven
+            console.log('calendario an',this.calendar)
             this.calendar  = items.map( function( e, i ) {
                 return i % 7 === 0 ? items.slice( i, i + 7 ) : null;
             }).filter( function( e ) { return e; } );
+            console.log('calendario des',this.calendar)
         },
     },
 });
@@ -58062,6 +58266,7 @@ __webpack_require__.r(__webpack_exports__);
         }
     },
     mounted() {
+        console.log('eventos semana',this.events)
         this.buildCalendar();
     },
     methods: {
@@ -58139,8 +58344,7 @@ var render = function() {
     "div",
     {
       ref: "event_block",
-      staticClass: "v-cal-event-item",
-      class: _vm.eventClasses,
+      class: _vm.event.estilo ? _vm.event.estilo : "v-cal-event-item-user",
       style: _vm.eventStyles,
       attrs: {
         title:
@@ -59336,6 +59540,7 @@ var render = function() {
   var _c = _vm._self._c || _h
   return _c(
     "v-card",
+    { staticClass: "mx-auto" },
     [
       _c(
         "v-container",
@@ -59359,12 +59564,18 @@ var render = function() {
                       _c("v-card-title", { attrs: { "primary-title": "" } }, [
                         _c("div", [
                           _c("div", { staticClass: "headline" }, [
-                            _vm._v(_vm._s(ambiente.nombre))
+                            _vm._v(
+                              "\n                " +
+                                _vm._s(ambiente.nombre) +
+                                "\n                "
+                            )
                           ]),
                           _vm._v(" "),
                           _c("span", [_vm._v(_vm._s(ambiente.direccion))])
                         ])
                       ]),
+                      _vm._v(" "),
+                      _c("v-divider"),
                       _vm._v(" "),
                       _c(
                         "v-card-actions",
@@ -59380,7 +59591,27 @@ var render = function() {
                               }
                             },
                             [_vm._v("Ver Reservas")]
-                          )
+                          ),
+                          _vm._v(" "),
+                          _vm.loggin
+                            ? _c(
+                                "v-btn",
+                                {
+                                  staticClass: "ml-4",
+                                  attrs: { outline: "", color: "white" },
+                                  on: {
+                                    click: function($event) {
+                                      return _vm.editarAmbiente(ambiente)
+                                    }
+                                  }
+                                },
+                                [
+                                  _vm._v(
+                                    "\n               Editar\n              "
+                                  )
+                                ]
+                              )
+                            : _vm._e()
                         ],
                         1
                       )
@@ -59424,7 +59655,166 @@ var render = function() {
             ],
             1
           )
-        : _vm._e()
+        : _vm._e(),
+      _vm._v(" "),
+      _c(
+        "v-dialog",
+        {
+          attrs: { persistent: "", "max-width": "400px" },
+          model: {
+            value: _vm.dialogEdit,
+            callback: function($$v) {
+              _vm.dialogEdit = $$v
+            },
+            expression: "dialogEdit"
+          }
+        },
+        [
+          _c(
+            "v-card",
+            [
+              _c(
+                "v-card-title",
+                {
+                  class: [
+                    _vm.classEditModal.headline,
+                    _vm.classEditModal.colorFondo,
+                    _vm.classEditModal.colorText
+                  ]
+                },
+                [
+                  _c("span", { staticClass: "headline" }, [
+                    _vm._v("Editar Ambiente")
+                  ])
+                ]
+              ),
+              _vm._v(" "),
+              _c(
+                "v-card-text",
+                [
+                  _vm.editAmbiente
+                    ? _c(
+                        "v-container",
+                        { attrs: { "grid-list-md": "" } },
+                        [
+                          _c(
+                            "v-layout",
+                            { attrs: { wrap: "" } },
+                            [
+                              _c(
+                                "v-flex",
+                                { attrs: { xs12: "" } },
+                                [
+                                  _c("v-text-field", {
+                                    attrs: { label: "Nombre*", required: "" },
+                                    model: {
+                                      value: _vm.editAmbiente.nombre,
+                                      callback: function($$v) {
+                                        _vm.$set(
+                                          _vm.editAmbiente,
+                                          "nombre",
+                                          $$v
+                                        )
+                                      },
+                                      expression: "editAmbiente.nombre"
+                                    }
+                                  })
+                                ],
+                                1
+                              ),
+                              _vm._v(" "),
+                              _c(
+                                "v-flex",
+                                { attrs: { xs12: "" } },
+                                [
+                                  _c("v-text-field", {
+                                    attrs: {
+                                      label: "Direccion*",
+                                      required: ""
+                                    },
+                                    model: {
+                                      value: _vm.editAmbiente.direccion,
+                                      callback: function($$v) {
+                                        _vm.$set(
+                                          _vm.editAmbiente,
+                                          "direccion",
+                                          $$v
+                                        )
+                                      },
+                                      expression: "editAmbiente.direccion"
+                                    }
+                                  })
+                                ],
+                                1
+                              ),
+                              _vm._v(" "),
+                              _c(
+                                "v-flex",
+                                { attrs: { xs12: "" } },
+                                [
+                                  _c("v-text-field", {
+                                    attrs: { label: "Color*", required: "" },
+                                    model: {
+                                      value: _vm.editAmbiente.color,
+                                      callback: function($$v) {
+                                        _vm.$set(_vm.editAmbiente, "color", $$v)
+                                      },
+                                      expression: "editAmbiente.color"
+                                    }
+                                  })
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      )
+                    : _vm._e()
+                ],
+                1
+              ),
+              _vm._v(" "),
+              _c(
+                "v-card-actions",
+                [
+                  _c("v-spacer"),
+                  _vm._v(" "),
+                  _c(
+                    "v-btn",
+                    {
+                      attrs: { color: "blue darken-1", flat: "" },
+                      on: {
+                        click: function($event) {
+                          _vm.dialogEdit = false
+                        }
+                      }
+                    },
+                    [_vm._v("Cerrar")]
+                  ),
+                  _vm._v(" "),
+                  _c(
+                    "v-btn",
+                    {
+                      attrs: { color: "blue darken-1", flat: "" },
+                      on: {
+                        click: function($event) {
+                          return _vm.actualizarAmbiente()
+                        }
+                      }
+                    },
+                    [_vm._v("Guardar")]
+                  )
+                ],
+                1
+              )
+            ],
+            1
+          )
+        ],
+        1
+      )
     ],
     1
   )
@@ -59463,12 +59853,227 @@ var render = function() {
           _c("v-spacer"),
           _vm._v(" "),
           _c(
+            "v-dialog",
+            {
+              attrs: { "max-width": "500px" },
+              model: {
+                value: _vm.dialog,
+                callback: function($$v) {
+                  _vm.dialog = $$v
+                },
+                expression: "dialog"
+              }
+            },
+            [
+              _c(
+                "v-card",
+                [
+                  _c("v-card-title", [
+                    _c("span", { staticClass: "headline" }, [
+                      _vm._v("Editar Usuario")
+                    ])
+                  ]),
+                  _vm._v(" "),
+                  _c(
+                    "v-card-text",
+                    [
+                      _c(
+                        "v-container",
+                        { attrs: { "grid-list-md": "" } },
+                        [
+                          _c(
+                            "v-layout",
+                            { attrs: { wrap: "" } },
+                            [
+                              _c(
+                                "v-flex",
+                                { attrs: { xs12: "", sm12: "", md12: "" } },
+                                [
+                                  _c("v-text-field", {
+                                    attrs: { label: "Nombre", required: "" },
+                                    model: {
+                                      value: _vm.editedItem.name,
+                                      callback: function($$v) {
+                                        _vm.$set(_vm.editedItem, "name", $$v)
+                                      },
+                                      expression: "editedItem.name"
+                                    }
+                                  })
+                                ],
+                                1
+                              ),
+                              _vm._v(" "),
+                              _c(
+                                "v-flex",
+                                { attrs: { xs12: "", sm12: "", md12: "" } },
+                                [
+                                  _c("v-text-field", {
+                                    attrs: { label: "Email", required: "" },
+                                    model: {
+                                      value: _vm.editedItem.email,
+                                      callback: function($$v) {
+                                        _vm.$set(_vm.editedItem, "email", $$v)
+                                      },
+                                      expression: "editedItem.email"
+                                    }
+                                  })
+                                ],
+                                1
+                              ),
+                              _vm._v(" "),
+                              _c(
+                                "v-flex",
+                                { attrs: { xs12: "", sm12: "", md12: "" } },
+                                [
+                                  _c("v-select", {
+                                    attrs: {
+                                      "item-text": "label",
+                                      "item-value": "value",
+                                      items: _vm.roles,
+                                      label: "Rol"
+                                    },
+                                    model: {
+                                      value: _vm.editedItem.rol,
+                                      callback: function($$v) {
+                                        _vm.$set(_vm.editedItem, "rol", $$v)
+                                      },
+                                      expression: "editedItem.rol"
+                                    }
+                                  })
+                                ],
+                                1
+                              ),
+                              _vm._v(" "),
+                              _c(
+                                "v-flex",
+                                { attrs: { xs12: "", sm12: "", md12: "" } },
+                                [
+                                  _c("v-checkbox", {
+                                    attrs: {
+                                      label: "Habilitado",
+                                      required: ""
+                                    },
+                                    model: {
+                                      value: _vm.editedItem.habilitado,
+                                      callback: function($$v) {
+                                        _vm.$set(
+                                          _vm.editedItem,
+                                          "habilitado",
+                                          $$v
+                                        )
+                                      },
+                                      expression: "editedItem.habilitado"
+                                    }
+                                  })
+                                ],
+                                1
+                              ),
+                              _vm._v(" "),
+                              _c("v-spacer"),
+                              _vm._v(" "),
+                              _c(
+                                "v-flex",
+                                { attrs: { xs12: "", sm12: "", md12: "" } },
+                                [
+                                  _c("v-checkbox", {
+                                    attrs: { label: "Cambiar Password" },
+                                    on: {
+                                      click: function($event) {
+                                        return _vm.cambiarEstadoPassword()
+                                      }
+                                    },
+                                    model: {
+                                      value: _vm.editedItem.password_enabled,
+                                      callback: function($$v) {
+                                        _vm.$set(
+                                          _vm.editedItem,
+                                          "password_enabled",
+                                          $$v
+                                        )
+                                      },
+                                      expression: "editedItem.password_enabled"
+                                    }
+                                  })
+                                ],
+                                1
+                              ),
+                              _vm._v(" "),
+                              _vm.password_enable
+                                ? _c(
+                                    "v-flex",
+                                    { attrs: { xs12: "", sm12: "", md12: "" } },
+                                    [
+                                      _c("v-text-field", {
+                                        attrs: { label: "Password" },
+                                        model: {
+                                          value: _vm.editedItem.password,
+                                          callback: function($$v) {
+                                            _vm.$set(
+                                              _vm.editedItem,
+                                              "password",
+                                              $$v
+                                            )
+                                          },
+                                          expression: "editedItem.password"
+                                        }
+                                      })
+                                    ],
+                                    1
+                                  )
+                                : _vm._e()
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      )
+                    ],
+                    1
+                  ),
+                  _vm._v(" "),
+                  _c(
+                    "v-card-actions",
+                    [
+                      _c("v-spacer"),
+                      _vm._v(" "),
+                      _c(
+                        "v-btn",
+                        {
+                          attrs: { color: "blue darken-1", flat: "" },
+                          on: {
+                            click: function($event) {
+                              _vm.dialog = false
+                            }
+                          }
+                        },
+                        [_vm._v("Cancelar")]
+                      ),
+                      _vm._v(" "),
+                      _c(
+                        "v-btn",
+                        {
+                          attrs: { color: "blue darken-1", flat: "" },
+                          on: { click: _vm.actualizar }
+                        },
+                        [_vm._v("Actualizar")]
+                      )
+                    ],
+                    1
+                  )
+                ],
+                1
+              )
+            ],
+            1
+          ),
+          _vm._v(" "),
+          _c(
             "v-btn",
             {
               attrs: { color: "primary", dark: "" },
               on: { click: _vm.registrarUsuario }
             },
-            [_vm._v("\n      Nuevo Usuario\n    ")]
+            [_vm._v("\n        Nuevo Usuario\n      ")]
           )
         ],
         1
@@ -59541,7 +60146,7 @@ var render = function() {
                           }
                         }
                       },
-                      [_vm._v("\n          edit\n        ")]
+                      [_vm._v("\n            edit\n          ")]
                     )
                   ],
                   1
@@ -59705,7 +60310,7 @@ var render = function() {
       ),
       _vm._v(" "),
       _c("v-toolbar-title", [
-        _vm._v("\n\n          Reserva de ambiente\n\n    ")
+        _vm._v("\n\n          " + _vm._s(_vm.titulo) + "\n\n    ")
       ]),
       _vm._v(" "),
       _c("v-spacer"),
@@ -103790,6 +104395,22 @@ module.exports = function(module) {
 
 /***/ }),
 
+/***/ "./resources/js/EventBus.js":
+/*!**********************************!*\
+  !*** ./resources/js/EventBus.js ***!
+  \**********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! vue */ "./node_modules/vue/dist/vue.common.js");
+/* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(vue__WEBPACK_IMPORTED_MODULE_0__);
+
+/* harmony default export */ __webpack_exports__["default"] = (new vue__WEBPACK_IMPORTED_MODULE_0___default.a());
+
+/***/ }),
+
 /***/ "./resources/js/Helpers/AppStorage.js":
 /*!********************************************!*\
   !*** ./resources/js/Helpers/AppStorage.js ***!
@@ -104032,12 +104653,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var v_calendar_scheduler__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! v-calendar-scheduler */ "./node_modules/v-calendar-scheduler/index.js");
 /* harmony import */ var vue_notification__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! vue-notification */ "./node_modules/vue-notification/dist/index.js");
 /* harmony import */ var vue_notification__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(vue_notification__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var moment__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! moment */ "./node_modules/moment/moment.js");
-/* harmony import */ var moment__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(moment__WEBPACK_IMPORTED_MODULE_4__);
-/* harmony import */ var v_calendar_scheduler_lib_main_css__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! v-calendar-scheduler/lib/main.css */ "./node_modules/v-calendar-scheduler/lib/main.css");
-/* harmony import */ var v_calendar_scheduler_lib_main_css__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(v_calendar_scheduler_lib_main_css__WEBPACK_IMPORTED_MODULE_5__);
-/* harmony import */ var _Helpers_User__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./Helpers/User */ "./resources/js/Helpers/User.js");
-/* harmony import */ var _Router_router_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./Router/router.js */ "./resources/js/Router/router.js");
+/* harmony import */ var _EventBus__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./EventBus */ "./resources/js/EventBus.js");
+/* harmony import */ var moment__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! moment */ "./node_modules/moment/moment.js");
+/* harmony import */ var moment__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(moment__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var v_calendar_scheduler_lib_main_css__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! v-calendar-scheduler/lib/main.css */ "./node_modules/v-calendar-scheduler/lib/main.css");
+/* harmony import */ var v_calendar_scheduler_lib_main_css__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(v_calendar_scheduler_lib_main_css__WEBPACK_IMPORTED_MODULE_6__);
+/* harmony import */ var _Helpers_User__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./Helpers/User */ "./resources/js/Helpers/User.js");
+/* harmony import */ var _Router_router_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./Router/router.js */ "./resources/js/Router/router.js");
 /**
  * First we will load all of this project's JavaScript dependencies which
  * includes Vue and other libraries. It is a great starting point when
@@ -104046,6 +104668,7 @@ __webpack_require__.r(__webpack_exports__);
 __webpack_require__(/*! ./bootstrap */ "./resources/js/bootstrap.js");
 
 window.Vue = __webpack_require__(/*! vue */ "./node_modules/vue/dist/vue.common.js");
+
 
 
 
@@ -104064,11 +104687,13 @@ vue__WEBPACK_IMPORTED_MODULE_0___default.a.use(v_calendar_scheduler__WEBPACK_IMP
     week: 'Semana',
     day: 'Día',
     all_day: 'Todo el día'
-  }
+  },
+  initialDate: new Date()
 });
 
-window.User = _Helpers_User__WEBPACK_IMPORTED_MODULE_6__["default"];
-vue__WEBPACK_IMPORTED_MODULE_0___default.a.prototype.moment = moment__WEBPACK_IMPORTED_MODULE_4___default.a;
+window.User = _Helpers_User__WEBPACK_IMPORTED_MODULE_7__["default"];
+vue__WEBPACK_IMPORTED_MODULE_0___default.a.prototype.$bus = _EventBus__WEBPACK_IMPORTED_MODULE_4__["default"];
+vue__WEBPACK_IMPORTED_MODULE_0___default.a.prototype.moment = moment__WEBPACK_IMPORTED_MODULE_5___default.a;
 /**
  * The following block of code may be used to automatically register your
  * Vue components. It will recursively scan this directory for the Vue
@@ -104089,7 +104714,7 @@ vue__WEBPACK_IMPORTED_MODULE_0___default.a.component('AppHome', __webpack_requir
 
 var app = new vue__WEBPACK_IMPORTED_MODULE_0___default.a({
   el: '#app',
-  router: _Router_router_js__WEBPACK_IMPORTED_MODULE_7__["default"]
+  router: _Router_router_js__WEBPACK_IMPORTED_MODULE_8__["default"]
 });
 
 /***/ }),
@@ -104123,6 +104748,8 @@ try {
 
 window.axios = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+var JwtToken = "Bearer ".concat(localStorage.getItem('token'));
+window.axios.defaults.headers.common['Authorization'] = JwtToken;
 /**
  * Next we will register the CSRF Token as a common header with Axios so that
  * all outgoing HTTP requests automatically have it attached. This is just

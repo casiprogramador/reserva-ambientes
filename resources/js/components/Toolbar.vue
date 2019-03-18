@@ -34,7 +34,7 @@
     
     <v-toolbar-title >
 
-            Reserva de ambiente
+            {{titulo}}
 
       </v-toolbar-title>
 
@@ -56,6 +56,7 @@
 <script>
   export default {
     data: () => ({
+      titulo: 'Reserva Ambientes',
       usuario: null,
       menu: {
         listaUsuario: false,
@@ -67,32 +68,47 @@
     }),
 
       created () {
-        this.usuario = User.nameUser();
-        if(this.usuario){
-          if(this.usuario.rol === 'administrador'){
-            this.menu.listaUsuario = true
-            this.menu.listaAmbientes = true
-            this.menu.ingresar = false
-            this.menu.salir = true
-          }else{
-            this.menu.listaUsuario = false
-            this.menu.listaAmbientes = true
-            this.menu.ingresar = false
-            this.menu.salir = true
-          }
-          
-        }
-        console.log('usuario',this.usuario)
-        //this.initialize()
+        this.actualizarMenu();
+        this.$bus.$on('logged', () => {
+             this.actualizarMenu();
+         })
+
+         this.$bus.$on('cambiarTextoTitulo', (texto) => {
+             this.titulo = texto
+         })
       },
       methods: {
         salir(){
           User.logout()
+          this.actualizarMenu();
           this.$router.push({ path: 'login' })
-          window.location.reload()
         },
         listaAmbientes(){
           this.$router.push({ path: 'lista-ambientes' })
+        },
+        actualizarMenu(){
+          console.log('Update Toolbar')
+             this.usuario = User.nameUser();
+
+              if(this.usuario){
+                if(this.usuario.rol === 'administrador'){
+                  this.menu.listaUsuario = true
+                  this.menu.listaAmbientes = true
+                  this.menu.ingresar = false
+                  this.menu.salir = true
+                }else{
+                  this.menu.listaUsuario = false
+                  this.menu.listaAmbientes = true
+                  this.menu.ingresar = false
+                  this.menu.salir = true
+                }
+                
+              }else{
+                  this.menu.listaUsuario = false
+                  this.menu.listaAmbientes = true
+                  this.menu.ingresar = true
+                  this.menu.salir = false
+              }
         }
 
       }
