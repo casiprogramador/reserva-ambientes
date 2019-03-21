@@ -106,11 +106,9 @@
                     }
                 }
                 // Split the array into "chunks" of seven
-                console.log('calendario an',this.calendar)
                 this.calendar  = items.map( function( e, i ) {
                     return i % 7 === 0 ? items.slice( i, i + 7 ) : null;
                 }).filter( function( e ) { return e; } );
-                console.log('calendario des',this.calendar)
             },
         },
     }

@@ -46,7 +46,7 @@
             color="error"
             flat
             v-if="event.user_id==usuario.id"
-             @click.stop="borrarEvento(event.id)"
+             @click.stop="borrarEvento(event)"
           >
             Borrar Evento
           </v-btn>
@@ -72,21 +72,40 @@ data() {
 },
   props: {
      value: Boolean,
-     event: Array
+     event: Object,
   },
   methods: {
-    borrarEvento($id_evento){
-      axios.delete(`/api/reserva/${$id_evento}`)
-            .then((res) => {
-               this.show=false
-                this.$emit('borrarEvento', true)
-            })
-            .catch((error) => {
-                    this.$emit('borrarEvento', false)
-            }) 
+    borrarEvento(event){
+      console.log(this.fechaPasado(event.date))
+      if(this.fechaPasado(event.date)){
+          this.show=false
+          this.$emit('borrarEvento', false)
+      }else{
+        axios
+        .request({
+          url: `/api/reserva/${event.id}`,
+          method: "delete",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+          }
+        })
+        .then((res) => {
+            this.show=false
+            this.$emit('borrarEvento', true)
+        })
+          .catch((error) => {
+            this.$emit('borrarEvento', false)
+        })  
+      }
+
     },
     cerrarDialog(){
       this.show=false
+    },
+    fechaPasado(fecha){
+      let hoy = new Date();
+      hoy.setHours(0,0,0,0);  
+      return fecha < hoy
     }
   },
   computed: {

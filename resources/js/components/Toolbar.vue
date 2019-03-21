@@ -33,9 +33,7 @@
     </v-menu>
     
     <v-toolbar-title >
-
-            {{titulo}}
-
+             {{titulo}}
       </v-toolbar-title>
 
     <v-spacer></v-spacer>

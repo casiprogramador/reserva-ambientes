@@ -152,8 +152,13 @@
 
     methods: {
       initialize () {
-          axios.get('/api/usuario')
-            .then((res) => {
+          axios.request({
+            url: `/api/usuario`,
+            method: 'get',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+          }).then((res) => {
               this.usuarios = res.data.data;
               console.log('respuesta',res.data.data)
             })

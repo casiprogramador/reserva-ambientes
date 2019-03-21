@@ -1770,6 +1770,27 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   components: {
@@ -1814,10 +1835,6 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
-//
-//
-//
-//
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
@@ -1832,13 +1849,13 @@ __webpack_require__.r(__webpack_exports__);
       events: [],
       dialogConfig: {
         fields: [{
-          name: 'name',
-          label: 'Motivo Reserva',
+          name: "name",
+          label: "Motivo Reserva",
           required: true
         }, {
-          name: 'user',
-          label: 'Usuario',
-          value: '',
+          name: "user",
+          label: "Usuario",
+          value: "",
           required: true,
           readonly: true
         }]
@@ -1855,7 +1872,7 @@ __webpack_require__.r(__webpack_exports__);
   },
   methods: {
     eventDisplay: function eventDisplay(event) {
-      return event.startTime.format('HH:mm') + '-' + event.endTime.format('HH:mm') + ' ' + event.name;
+      return event.startTime.format("HH:mm") + "-" + event.endTime.format("HH:mm") + " " + event.name;
     },
     eventClicked: function eventClicked(event) {
       this.eventSelected = event;
@@ -1871,38 +1888,61 @@ __webpack_require__.r(__webpack_exports__);
       var _this = this;
 
       var data = {
-        fecha: moment__WEBPACK_IMPORTED_MODULE_1___default()(event.date).format('YYYY-MM-DD'),
+        fecha: moment__WEBPACK_IMPORTED_MODULE_1___default()(event.date).format("YYYY-MM-DD"),
         hora_inicio: event.startTime,
         hora_fin: event.endTime,
         motivo: event.name,
         ambiente_id: this.ambiente_id,
         user_id: this.usuario.id
       };
-      axios.post('/api/reserva', data).then(function (res) {
-        console.log('Respuesta Evento Creado', res);
+      console.log(this.fechaPasado(event.date));
 
-        _this.cargarEventos(_this.mes);
-
-        _this.$notify({
-          group: 'notificacion',
-          title: 'Ambiente Reservado',
-          text: 'Se reservo el ambiente exitosamente',
-          type: 'success'
+      if (this.fechaPasado(event.date)) {
+        this.$notify({
+          group: "notificacion",
+          title: "Reseva invalida",
+          text: "No se puede realizar reservaciones <br> de una fecha pasada",
+          type: "error"
         });
-      }).catch(function (error) {
-        //this.errors = error.response.data.errors
-        console.log(error);
-
-        _this.cargarEventos(_this.mes);
-
-        _this.$notify({
-          group: 'notificacion',
-          title: 'Error al reservar ambiente',
-          text: 'Ocurrio un error al reservar el ambiente',
-          type: 'error'
+        this.cargarEventos(this.mes);
+      } else {
+        this.$notify({
+          group: "notificacion",
+          title: "Espere un momento",
+          text: "Se esta reservando el ambiente ....",
+          type: "warn"
         });
-      });
-      console.log('Event created');
+        axios({
+          method: "post",
+          url: "/api/reserva",
+          data: data,
+          headers: {
+            Authorization: "Bearer ".concat(localStorage.getItem("token"))
+          }
+        }).then(function (res) {
+          console.log("Respuesta Evento Creado", res);
+
+          _this.cargarEventos(_this.mes);
+
+          _this.$notify({
+            group: "notificacion",
+            title: "Ambiente Reservado",
+            text: "Se reservo el ambiente exitosamente",
+            type: "success"
+          });
+        }).catch(function (error) {
+          console.log(error);
+
+          _this.cargarEventos(_this.mes);
+
+          _this.$notify({
+            group: "notificacion",
+            title: "Error al reservar ambiente",
+            text: "Ocurrio un error al reservar el ambiente",
+            type: "error"
+          });
+        });
+      }
     },
     cargarEventos: function cargarEventos(mes) {
       var _this2 = this;
@@ -1910,12 +1950,18 @@ __webpack_require__.r(__webpack_exports__);
       ///reserva/{id_ambiente}/ambiente/{$mes}/mes
       this.loading = true; //console.log('Usuario logeado',User.nameUser().id)
 
-      axios.get("/api/reserva/".concat(this.ambiente_id, "/ambiente/").concat(mes, "/mes")).then(function (res) {
+      axios.request({
+        url: "/api/reserva/".concat(this.ambiente_id, "/ambiente/").concat(mes, "/mes"),
+        method: "get",
+        headers: {
+          Authorization: "Bearer ".concat(localStorage.getItem("token"))
+        }
+      }).then(function (res) {
         _this2.loading = false; //console.log('token',res)
 
         var events = res.data.data;
         _this2.events = events.map(function (object) {
-          object.estilo = object.user_id == User.nameUser().id ? 'v-cal-event-item-user' : 'v-cal-event-item';
+          object.estilo = object.user_id == User.nameUser().id ? "v-cal-event-item-user" : "v-cal-event-item";
           return object;
         }); //this.events = res.data.data;
       }).catch(function (error) {
@@ -1923,31 +1969,36 @@ __webpack_require__.r(__webpack_exports__);
         console.log(error);
         User.logout();
 
-        _this2.$bus.$emit('logged', 'User logged');
+        _this2.$bus.$emit("logged", "User logged");
 
         _this2.$router.push({
-          path: 'lista-ambientes'
+          path: "lista-ambientes"
         });
       });
     },
     eventoBorradoDialog: function eventoBorradoDialog(value) {
       if (value) {
         this.$notify({
-          group: 'notificacion',
-          title: 'Reserva Borrada',
-          text: 'La reserva se borro exitosamente',
-          type: 'success'
+          group: "notificacion",
+          title: "Reserva Eliminada",
+          text: "La reserva se borro exitosamente",
+          type: "success"
         });
       } else {
         this.$notify({
-          group: 'notificacion',
-          title: 'Error',
-          text: 'Ocurrio un error al intentar borrar la reserva',
-          type: 'error'
+          group: "notificacion",
+          title: "Reserva sin eliminar",
+          text: "No se pudo eliminar la reserva",
+          type: "error"
         });
       }
 
       this.cargarEventos(this.mes);
+    },
+    fechaPasado: function fechaPasado(fecha) {
+      var hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+      return fecha < hoy;
     }
   },
   components: {
@@ -2121,22 +2172,40 @@ __webpack_require__.r(__webpack_exports__);
   },
   props: {
     value: Boolean,
-    event: Array
+    event: Object
   },
   methods: {
-    borrarEvento: function borrarEvento($id_evento) {
+    borrarEvento: function borrarEvento(event) {
       var _this = this;
 
-      axios.delete("/api/reserva/".concat($id_evento)).then(function (res) {
-        _this.show = false;
+      console.log(this.fechaPasado(event.date));
 
-        _this.$emit('borrarEvento', true);
-      }).catch(function (error) {
-        _this.$emit('borrarEvento', false);
-      });
+      if (this.fechaPasado(event.date)) {
+        this.show = false;
+        this.$emit('borrarEvento', false);
+      } else {
+        axios.request({
+          url: "/api/reserva/".concat(event.id),
+          method: "delete",
+          headers: {
+            Authorization: "Bearer ".concat(localStorage.getItem("token"))
+          }
+        }).then(function (res) {
+          _this.show = false;
+
+          _this.$emit('borrarEvento', true);
+        }).catch(function (error) {
+          _this.$emit('borrarEvento', false);
+        });
+      }
     },
     cerrarDialog: function cerrarDialog() {
       this.show = false;
+    },
+    fechaPasado: function fechaPasado(fecha) {
+      var hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+      return fecha < hoy;
     }
   },
   computed: {
@@ -2497,7 +2566,13 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
     initialize: function initialize() {
       var _this = this;
 
-      axios.get('/api/usuario').then(function (res) {
+      axios.request({
+        url: "/api/usuario",
+        method: 'get',
+        headers: {
+          'Authorization': "Bearer ".concat(localStorage.getItem('token'))
+        }
+      }).then(function (res) {
         _this.usuarios = res.data.data;
         console.log('respuesta', res.data.data);
       }).catch(function (error) {
@@ -2550,8 +2625,6 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-//
-//
 //
 //
 //
@@ -7387,7 +7460,7 @@ exports = module.exports = __webpack_require__(/*! ../../css-loader/lib/css-base
 
 
 // module
-exports.push([module.i, ".v-cal-dialog{font-family: sans-serif;position:fixed;left:0;right:0;top:0;bottom:0;z-index:999;box-sizing:border-box}.v-cal-dialog *{box-sizing:inherit}.v-cal-dialog .v-cal-dialog__bg{background-color:rgba(0,0,0,0.3);position:absolute;width:100%;height:100%}.v-cal-dialog .v-cal-dialog-card{position:absolute;background:#fff;width:90%;top:50%;left:50%;-webkit-transform:translate(-50%, -50%);transform:translate(-50%, -50%);max-width:500px;box-shadow:0 0 6px rgba(0,0,0,0.4)}.v-cal-dialog .v-cal-dialog-card__header{display:flex;align-items:center;padding:20px;border-bottom:1px solid #EAF0F4}.v-cal-dialog .v-cal-dialog-card__header .v-cal-dialog__title{font-size:16px;margin:0}.v-cal-dialog .v-cal-dialog-card__header .v-cal-dialog__close{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;-moz-appearance:none;-webkit-appearance:none;background-color:transparent;border:none;cursor:pointer;display:inline-block;flex-grow:0;flex-shrink:0;font-size:0;height:18px;max-height:18px;max-width:18px;min-height:18px;min-width:18px;outline:none;position:relative;vertical-align:top;width:18px;padding:0;margin-left:auto}.v-cal-dialog .v-cal-dialog-card__header .v-cal-dialog__close::before,.v-cal-dialog .v-cal-dialog-card__header .v-cal-dialog__close::after{background-color:#BCBCCB;content:\"\";display:block;left:50%;position:absolute;top:50%;-webkit-transform:translateX(-50%) translateY(-50%) rotate(45deg);transform:translateX(-50%) translateY(-50%) rotate(45deg);-webkit-transform-origin:center center;transform-origin:center center}.v-cal-dialog .v-cal-dialog-card__header .v-cal-dialog__close::before{height:2px;width:100%}.v-cal-dialog .v-cal-dialog-card__header .v-cal-dialog__close::after{height:100%;width:2px}.v-cal-dialog .v-cal-dialog-card__body{max-height:550px;overflow:auto;padding:20px}.v-cal-dialog .v-cal-fields{display:flex;flex-wrap:wrap}.v-cal-dialog .v-cal-fields .v-cal-input-group{display:flex;flex-wrap:wrap;padding:10px;width:100%}.v-cal-dialog .v-cal-fields .v-cal-input-group>label{width:100%;margin-bottom:5px}.v-cal-dialog .v-cal-fields .v-cal-input-group>label input[type=\"checkbox\"],.v-cal-dialog .v-cal-fields .v-cal-input-group>label input[type=\"radio\"]{margin-right:5px}.v-cal-dialog .v-cal-fields .v-cal-input-group .v-cal-input{width:auto;flex:1}.v-cal-dialog .v-cal-fields .v-cal-input-group .v-cal-input:first-of-type{padding-left:0}.v-cal-dialog .v-cal-fields .v-cal-input-group .v-cal-input:last-of-type{padding-right:0}.v-cal-dialog .v-cal-fields .v-cal-input{padding:10px;width:100%}.v-cal-dialog .v-cal-fields .v-cal-input.is-inline label{margin-bottom:0}.v-cal-dialog .v-cal-fields .v-cal-input.is-radio input,.v-cal-dialog .v-cal-fields .v-cal-input.is-checkbox input{margin-right:5px}.v-cal-dialog .v-cal-fields .v-cal-input label{display:inline-block;margin-bottom:10px}.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"text\"],.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"email\"],.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"password\"],.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"date\"],.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"time\"],.v-cal-dialog .v-cal-fields .v-cal-input textarea,.v-cal-dialog .v-cal-fields .v-cal-input select{transition:all 0.3s ease-in-out;display:block;font-family:sans-serif;width:100%;border:1px solid #E8E9EC;border-radius:4px;padding:10px 12px}.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"text\"]:hover,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"email\"]:hover,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"password\"]:hover,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"date\"]:hover,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"time\"]:hover,.v-cal-dialog .v-cal-fields .v-cal-input textarea:hover,.v-cal-dialog .v-cal-fields .v-cal-input select:hover{border-color:#808495}.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"text\"]:focus,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"text\"]:active,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"email\"]:focus,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"email\"]:active,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"password\"]:focus,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"password\"]:active,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"date\"]:focus,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"date\"]:active,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"time\"]:focus,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"time\"]:active,.v-cal-dialog .v-cal-fields .v-cal-input textarea:focus,.v-cal-dialog .v-cal-fields .v-cal-input textarea:active,.v-cal-dialog .v-cal-fields .v-cal-input select:focus,.v-cal-dialog .v-cal-fields .v-cal-input select:active{border-color:#3B86FF}.v-cal-dialog .v-cal-fields .v-cal-input textarea{min-width:100%;max-width:100%;min-height:100px;max-height:150px}.v-cal-dialog .v-cal-dialog-card__footer{display:flex;align-items:center;padding:20px;border-top:1px solid #EAF0F4;justify-content:flex-end}.v-cal{font-family:sans-serif;font-size:inherit;padding:20px;background-color:#fff;color:#4D4F5C;box-shadow:0 2px 6px rgba(0,0,0,0.04);box-sizing:border-box}.v-cal *{box-sizing:inherit}.v-cal-button{cursor:pointer;background:#fff;padding:8px 18px;border:1px solid #D7DAE2;box-shadow:0 2px 3px rgba(0,0,0,0.05);font-size:13px;transition:all 0.3s ease-in-out}.v-cal-button.is-rounded{border-radius:4px}.v-cal-button.v-cal-button--is-active{background-color:#fff;color:#3B86FF}.v-cal-button:hover{color:#3B86FF;background-color:#fcfcfc}.v-cal-button.is-primary{border-color:#3B86FF;background-color:#3B86FF;color:#fff}.v-cal-button:disabled,.v-cal-button:disabled:hover{background-color:#f0f0f0;color:#d0d0d0;cursor:not-allowed;border-color:#D7DAE2}.v-cal-header{padding:0 0 40px}.v-cal-header__actions{display:flex;justify-content:space-between}.v-cal-header__actions .actions-left,.v-cal-header__actions .actions-right{display:flex}.v-cal-header__actions .v-cal-button:first-child{border-bottom-left-radius:4px;border-top-left-radius:4px}.v-cal-header__actions .v-cal-button:last-child{border-bottom-right-radius:4px;border-top-right-radius:4px}.v-cal-header__actions .v-cal-button:not(:last-child){border-right:none}.v-cal-header__title-bar .v-cal-header__title{margin:0;font-size:18px;font-weight:normal;text-align:center}.v-cal-content{border:1px solid #EAF0F4}.v-cal-content .v-cal-weekdays,.v-cal-content .v-cal-days{display:flex}.v-cal-content .v-cal-event-item{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;position:relative;flex-grow:1;background-color:#3B86FF;color:#3B86FF;border-radius:4px;padding:0px 0px;font-size: 12px;text-align:left;white-space:nowrap;overflow:hidden;cursor:pointer} .v-cal-event-item-user{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;position:relative;flex-grow:1;background-color:#28943a;color:#ffffff;border-radius:4px;padding:0px 5px;font-size: 12px;text-align:left;white-space:nowrap;overflow:hidden;cursor:pointer}.v-cal-content .v-cal-event-item::after{content:'';display:block;position:absolute;width:14px;height:100%;top:0;right:0;background:linear-gradient(to right, transparent 0%, currentColor 75%)}.v-cal-content .v-cal-event-item:not(:last-child){margin-bottom:1px}.v-cal-content .v-cal-event-item .v-cal-event-time,.v-cal-content .v-cal-event-item .v-cal-event-name{color:#fff}.v-cal-content .v-cal-event-item .v-cal-event-time{font-weight:bold;font-size:.85rem}.v-cal-content .v-cal-event-item .v-cal-event-name{margin-left:5px}.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day,.v-cal-content.v-cal-content--week .v-cal-days .v-cal-day,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-day{background:#fff}.v-cal-content.v-cal-content--month .v-cal-weekdays,.v-cal-content.v-cal-content--week .v-cal-weekdays,.v-cal-content.v-cal-content--day .v-cal-weekdays{background-color:#F5F6FA;color:#A3A6B4;text-transform:uppercase;font-size:.75rem;font-weight:bold;text-align:center;border-bottom:1px solid #EAF0F4}.v-cal-content.v-cal-content--month .v-cal-weekdays .v-cal-weekday-item,.v-cal-content.v-cal-content--week .v-cal-weekdays .v-cal-weekday-item,.v-cal-content.v-cal-content--day .v-cal-weekdays .v-cal-weekday-item{padding:15px 0}.v-cal-content.v-cal-content--month .v-cal-weekdays .v-cal-weekday-item,.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day{width:14.28571%}.v-cal-content.v-cal-content--month .v-cal-days:not(:last-child){border-bottom:1px solid #EAF0F4}.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day{transition:all 0.3s ease-in-out;position:relative;text-align:right;min-height:140px;padding-bottom:2px}.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day.v-cal-day--month{overflow:hidden}.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day.v-cal-day--month.is-extended{height:auto}.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day.is-today{background-color:#F5F6FA}.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day.is-different-month{color:rgba(67,66,93,0.3)}.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day:not(:last-child){border-right:1px solid #EAF0F4}.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day:not(.is-disabled):hover{background-color:#fcfcfc}.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day .v-cal-day__number{display:block;font-size:.75rem;padding:10px}.v-cal-content.v-cal-content--month .v-cal-day.is-disabled,.v-cal-content.v-cal-content--week .v-cal-day.is-disabled{background-color:#f0f0f0;color:#b0b0b0}.v-cal-content.v-cal-content--week .v-cal-hour.all-day,.v-cal-content.v-cal-content--week .v-cal-day__hour-block.all-day,.v-cal-content.v-cal-content--day .v-cal-hour.all-day,.v-cal-content.v-cal-content--day .v-cal-day__hour-block.all-day{border-width:3px !important}.v-cal-content.v-cal-content--week .v-cal-times,.v-cal-content.v-cal-content--day .v-cal-times{background:#fff;font-size:.8125rem;font-weight:normal;border-right:1px solid #EAF0F4}.v-cal-content.v-cal-content--week .v-cal-times .v-cal-hour,.v-cal-content.v-cal-content--day .v-cal-times .v-cal-hour{padding:15px}.v-cal-content.v-cal-content--week .v-cal-times .v-cal-hour.is-now,.v-cal-content.v-cal-content--day .v-cal-times .v-cal-hour.is-now{font-weight:bold}.v-cal-content.v-cal-content--week .v-cal-times .v-cal-hour:not(:last-child),.v-cal-content.v-cal-content--day .v-cal-times .v-cal-hour:not(:last-child){border-bottom:1px solid #EAF0F4}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper{display:flex;flex-grow:1}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-day,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-day{flex-grow:1}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-day.is-today,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-day.is-today{background-color:#F5F6FA}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-day.is-different-month,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-day.is-different-month{color:rgba(67,66,93,0.3)}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-day:not(:last-child),.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-day:not(:last-child){border-right:1px solid #EAF0F4}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block{transition:all 0.3s ease-in-out;padding:15px;position:relative;background-color:rgba(0,0,0,0)}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block:hover,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block:hover{background-color:#fcfcfc}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block:not(:last-child),.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block:not(:last-child){border-bottom:1px solid #EAF0F4}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block .v-cal-day__hour-block-fill,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block .v-cal-day__hour-block-fill{display:block;font-size:.8125rem;visibility:hidden}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block .v-cal-day__hour-content,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block .v-cal-day__hour-content{position:absolute;left:0;top:0;right:0;bottom:0;width:100%;height:100%}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-event-list,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-event-list{display:flex}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-event-list.tiny-events,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-event-list.tiny-events{display:flex;flex-wrap:wrap}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-event-list.tiny-events .v-cal-event-item,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-event-list.tiny-events .v-cal-event-item{flex:none;width:15px;height:15px;padding:0;font-size:0;border-radius:50%}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-event-list.tiny-events .v-cal-event-item:not(:last-child),.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-event-list.tiny-events .v-cal-event-item:not(:last-child){margin-right:2px;margin-bottom:2px}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-event-item,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-event-item{z-index:1;box-shadow:0 0 5px rgba(0,0,0,0.25);width:100%;padding:3px 14px;font-size:.9rem}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-event-item.is-overlapping,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-event-item.is-overlapping{flex:none}.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.has-marker::after,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.has-marker::before,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.has-marker::after,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.has-marker::before{content:'';display:block;position:absolute;top:0;left:0;background-color:#3B86FF}.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now::after,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now::after{width:calc(100% + 1px);height:1px}.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now::before,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now::before{width:9px;height:9px;border-radius:50%;-webkit-transform:translate(-50%, -50%);transform:translate(-50%, -50%)}.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-10::after,.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-10::before,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-10::after,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-10::before,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-10::after,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-10::before,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-10::after,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-10::before{top:16.66667%}.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-20::after,.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-20::before,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-20::after,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-20::before,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-20::after,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-20::before,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-20::after,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-20::before{top:33.33333%}.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-30::after,.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-30::before,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-30::after,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-30::before,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-30::after,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-30::before,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-30::after,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-30::before{top:50%}.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-40::after,.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-40::before,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-40::after,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-40::before,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-40::after,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-40::before,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-40::after,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-40::before{top:66.66667%}.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-50::after,.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-50::before,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-50::after,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-50::before,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-50::after,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-50::before,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-50::after,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-50::before{top:83.33333%}.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-60::after,.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-60::before,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-60::after,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-60::before,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-60::after,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-60::before,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-60::after,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-60::before{top:100%}.v-cal-content.v-cal-content--week .v-cal-weekdays{max-height:3rem;text-transform:none}.v-cal-content.v-cal-content--week .v-cal-weekdays .v-cal-weekdays__padding{visibility:hidden}.v-cal-content.v-cal-content--week .v-cal-weekdays .v-cal-weekday__wrapper{display:flex;flex-grow:1}.v-cal-content.v-cal-content--week .v-cal-weekdays .v-cal-weekday__wrapper .v-cal-weekday-item{flex-grow:1}.v-cal-content.v-cal-content--day .v-cal-weekdays{display:flex;text-transform:none}.v-cal-content.v-cal-content--day .v-cal-weekdays .v-cal-weekday-item{flex-grow:1}", ""]);
+exports.push([module.i, ".v-cal-dialog{font-family: sans-serif;position:fixed;left:0;right:0;top:0;bottom:0;z-index:999;box-sizing:border-box}.v-cal-dialog *{box-sizing:inherit}.v-cal-dialog .v-cal-dialog__bg{background-color:rgba(0,0,0,0.3);position:absolute;width:100%;height:100%}.v-cal-dialog .v-cal-dialog-card{position:absolute;background:#fff;width:90%;top:50%;left:50%;-webkit-transform:translate(-50%, -50%);transform:translate(-50%, -50%);max-width:500px;box-shadow:0 0 6px rgba(0,0,0,0.4)}.v-cal-dialog .v-cal-dialog-card__header{display:flex;align-items:center;padding:20px;border-bottom:1px solid #EAF0F4}.v-cal-dialog .v-cal-dialog-card__header .v-cal-dialog__title{font-size:16px;margin:0}.v-cal-dialog .v-cal-dialog-card__header .v-cal-dialog__close{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;-moz-appearance:none;-webkit-appearance:none;background-color:transparent;border:none;cursor:pointer;display:inline-block;flex-grow:0;flex-shrink:0;font-size:0;height:18px;max-height:18px;max-width:18px;min-height:18px;min-width:18px;outline:none;position:relative;vertical-align:top;width:18px;padding:0;margin-left:auto}.v-cal-dialog .v-cal-dialog-card__header .v-cal-dialog__close::before,.v-cal-dialog .v-cal-dialog-card__header .v-cal-dialog__close::after{background-color:#BCBCCB;content:\"\";display:block;left:50%;position:absolute;top:50%;-webkit-transform:translateX(-50%) translateY(-50%) rotate(45deg);transform:translateX(-50%) translateY(-50%) rotate(45deg);-webkit-transform-origin:center center;transform-origin:center center}.v-cal-dialog .v-cal-dialog-card__header .v-cal-dialog__close::before{height:2px;width:100%}.v-cal-dialog .v-cal-dialog-card__header .v-cal-dialog__close::after{height:100%;width:2px}.v-cal-dialog .v-cal-dialog-card__body{max-height:550px;overflow:auto;padding:20px}.v-cal-dialog .v-cal-fields{display:flex;flex-wrap:wrap}.v-cal-dialog .v-cal-fields .v-cal-input-group{display:flex;flex-wrap:wrap;padding:10px;width:100%}.v-cal-dialog .v-cal-fields .v-cal-input-group>label{width:100%;margin-bottom:5px}.v-cal-dialog .v-cal-fields .v-cal-input-group>label input[type=\"checkbox\"],.v-cal-dialog .v-cal-fields .v-cal-input-group>label input[type=\"radio\"]{margin-right:5px}.v-cal-dialog .v-cal-fields .v-cal-input-group .v-cal-input{width:auto;flex:1}.v-cal-dialog .v-cal-fields .v-cal-input-group .v-cal-input:first-of-type{padding-left:0}.v-cal-dialog .v-cal-fields .v-cal-input-group .v-cal-input:last-of-type{padding-right:0}.v-cal-dialog .v-cal-fields .v-cal-input{padding:10px;width:100%}.v-cal-dialog .v-cal-fields .v-cal-input.is-inline label{margin-bottom:0}.v-cal-dialog .v-cal-fields .v-cal-input.is-radio input,.v-cal-dialog .v-cal-fields .v-cal-input.is-checkbox input{margin-right:5px}.v-cal-dialog .v-cal-fields .v-cal-input label{display:inline-block;margin-bottom:10px}.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"text\"],.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"email\"],.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"password\"],.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"date\"],.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"time\"],.v-cal-dialog .v-cal-fields .v-cal-input textarea,.v-cal-dialog .v-cal-fields .v-cal-input select{transition:all 0.3s ease-in-out;display:block;font-family:sans-serif;width:100%;border:1px solid #E8E9EC;border-radius:4px;padding:10px 12px}.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"text\"]:hover,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"email\"]:hover,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"password\"]:hover,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"date\"]:hover,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"time\"]:hover,.v-cal-dialog .v-cal-fields .v-cal-input textarea:hover,.v-cal-dialog .v-cal-fields .v-cal-input select:hover{border-color:#808495}.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"text\"]:focus,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"text\"]:active,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"email\"]:focus,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"email\"]:active,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"password\"]:focus,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"password\"]:active,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"date\"]:focus,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"date\"]:active,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"time\"]:focus,.v-cal-dialog .v-cal-fields .v-cal-input input[type=\"time\"]:active,.v-cal-dialog .v-cal-fields .v-cal-input textarea:focus,.v-cal-dialog .v-cal-fields .v-cal-input textarea:active,.v-cal-dialog .v-cal-fields .v-cal-input select:focus,.v-cal-dialog .v-cal-fields .v-cal-input select:active{border-color:#3B86FF}.v-cal-dialog .v-cal-fields .v-cal-input textarea{min-width:100%;max-width:100%;min-height:100px;max-height:150px}.v-cal-dialog .v-cal-dialog-card__footer{display:flex;align-items:center;padding:20px;border-top:1px solid #EAF0F4;justify-content:flex-end}.v-cal{font-family:sans-serif;font-size:inherit;padding:20px;background-color:#fff;color:#4D4F5C;box-shadow:0 2px 6px rgba(0,0,0,0.04);box-sizing:border-box}.v-cal *{box-sizing:inherit}.v-cal-button{cursor:pointer;background:#fff;padding:8px 18px;border:1px solid #D7DAE2;box-shadow:0 2px 3px rgba(0,0,0,0.05);font-size:13px;transition:all 0.3s ease-in-out}.v-cal-button.is-rounded{border-radius:4px}.v-cal-button.v-cal-button--is-active{background-color:#fff;color:#3B86FF}.v-cal-button:hover{color:#3B86FF;background-color:#fcfcfc}.v-cal-button.is-primary{border-color:#3B86FF;background-color:#3B86FF;color:#fff}.v-cal-button:disabled,.v-cal-button:disabled:hover{background-color:#f0f0f0;color:#d0d0d0;cursor:not-allowed;border-color:#D7DAE2}.v-cal-header{padding:0 0 40px}.v-cal-header__actions{display:flex;justify-content:space-between}.v-cal-header__actions .actions-left,.v-cal-header__actions .actions-right{display:flex}.v-cal-header__actions .v-cal-button:first-child{border-bottom-left-radius:4px;border-top-left-radius:4px}.v-cal-header__actions .v-cal-button:last-child{border-bottom-right-radius:4px;border-top-right-radius:4px}.v-cal-header__actions .v-cal-button:not(:last-child){border-right:none}.v-cal-header__title-bar .v-cal-header__title{margin:0;font-size:18px;font-weight:normal;text-align:center}.v-cal-content{border:1px solid #EAF0F4}.v-cal-content .v-cal-weekdays,.v-cal-content .v-cal-days{display:flex}.v-cal-content .v-cal-event-item{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;position:relative;flex-grow:1;background-color:#3B86FF;color:#3B86FF;border-radius:4px;padding:0px 0px;font-size: 12px;text-align:left;white-space:nowrap;overflow:hidden;cursor:pointer} .v-cal-event-item-user{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;position:relative;flex-grow:1;background-color:#28943a;color:#ffffff;border-radius:4px;padding:0px 5px;font-size: 12px;text-align:left;white-space:nowrap;overflow:hidden;cursor:pointer}.v-cal-content .v-cal-event-item::after{content:'';display:block;position:absolute;width:14px;height:100%;top:0;right:0;background:linear-gradient(to right, transparent 0%, currentColor 75%)}.v-cal-content .v-cal-event-item:not(:last-child){margin-bottom:1px}.v-cal-content .v-cal-event-item .v-cal-event-time,.v-cal-content .v-cal-event-item .v-cal-event-name{color:#fff}.v-cal-content .v-cal-event-item .v-cal-event-time{font-weight:bold;font-size:.85rem}.v-cal-content .v-cal-event-item .v-cal-event-name{margin-left:5px}.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day,.v-cal-content.v-cal-content--week .v-cal-days .v-cal-day,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-day{background:#fff}.v-cal-content.v-cal-content--month .v-cal-weekdays,.v-cal-content.v-cal-content--week .v-cal-weekdays,.v-cal-content.v-cal-content--day .v-cal-weekdays{background-color:#F5F6FA;color:#A3A6B4;text-transform:uppercase;font-size:.75rem;font-weight:bold;text-align:center;border-bottom:1px solid #EAF0F4}.v-cal-content.v-cal-content--month .v-cal-weekdays .v-cal-weekday-item,.v-cal-content.v-cal-content--week .v-cal-weekdays .v-cal-weekday-item,.v-cal-content.v-cal-content--day .v-cal-weekdays .v-cal-weekday-item{padding:15px 0}.v-cal-content.v-cal-content--month .v-cal-weekdays .v-cal-weekday-item,.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day{width:14.28571%}.v-cal-content.v-cal-content--month .v-cal-days:not(:last-child){border-bottom:1px solid #EAF0F4}.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day{transition:all 0.3s ease-in-out;position:relative;text-align:right;min-height:140px;padding-bottom:2px}.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day.v-cal-day--month{overflow:hidden}.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day.v-cal-day--month.is-extended{height:auto}.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day.is-today{background-color:#fff39c}.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day.is-different-month{color:rgba(67,66,93,0.3)}.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day:not(:last-child){border-right:1px solid #EAF0F4}.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day:not(.is-disabled):hover{background-color:#fcfcfc}.v-cal-content.v-cal-content--month .v-cal-days .v-cal-day .v-cal-day__number{display:block;font-size:.75rem;padding:10px}.v-cal-content.v-cal-content--month .v-cal-day.is-disabled,.v-cal-content.v-cal-content--week .v-cal-day.is-disabled{background-color:#f0f0f0;color:#b0b0b0}.v-cal-content.v-cal-content--week .v-cal-hour.all-day,.v-cal-content.v-cal-content--week .v-cal-day__hour-block.all-day,.v-cal-content.v-cal-content--day .v-cal-hour.all-day,.v-cal-content.v-cal-content--day .v-cal-day__hour-block.all-day{border-width:3px !important}.v-cal-content.v-cal-content--week .v-cal-times,.v-cal-content.v-cal-content--day .v-cal-times{background:#fff;font-size:.8125rem;font-weight:normal;border-right:1px solid #EAF0F4}.v-cal-content.v-cal-content--week .v-cal-times .v-cal-hour,.v-cal-content.v-cal-content--day .v-cal-times .v-cal-hour{padding:15px}.v-cal-content.v-cal-content--week .v-cal-times .v-cal-hour.is-now,.v-cal-content.v-cal-content--day .v-cal-times .v-cal-hour.is-now{font-weight:bold}.v-cal-content.v-cal-content--week .v-cal-times .v-cal-hour:not(:last-child),.v-cal-content.v-cal-content--day .v-cal-times .v-cal-hour:not(:last-child){border-bottom:1px solid #EAF0F4}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper{display:flex;flex-grow:1}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-day,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-day{flex-grow:1}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-day.is-today,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-day.is-today{background-color:#fff39c}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-day.is-different-month,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-day.is-different-month{color:rgba(67,66,93,0.3)}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-day:not(:last-child),.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-day:not(:last-child){border-right:1px solid #EAF0F4}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block{transition:all 0.3s ease-in-out;padding:15px;position:relative;background-color:rgba(0,0,0,0)}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block:hover,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block:hover{background-color:#fcfcfc}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block:not(:last-child),.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block:not(:last-child){border-bottom:1px solid #EAF0F4}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block .v-cal-day__hour-block-fill,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block .v-cal-day__hour-block-fill{display:block;font-size:.8125rem;visibility:hidden}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block .v-cal-day__hour-content,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-day__hour-block .v-cal-day__hour-content{position:absolute;left:0;top:0;right:0;bottom:0;width:100%;height:100%}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-event-list,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-event-list{display:flex}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-event-list.tiny-events,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-event-list.tiny-events{display:flex;flex-wrap:wrap}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-event-list.tiny-events .v-cal-event-item,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-event-list.tiny-events .v-cal-event-item{flex:none;width:15px;height:15px;padding:0;font-size:0;border-radius:50%}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-event-list.tiny-events .v-cal-event-item:not(:last-child),.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-event-list.tiny-events .v-cal-event-item:not(:last-child){margin-right:2px;margin-bottom:2px}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-event-item,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-event-item{z-index:1;box-shadow:0 0 5px rgba(0,0,0,0.25);width:100%;padding:3px 14px;font-size:.9rem}.v-cal-content.v-cal-content--week .v-cal-days .v-cal-days__wrapper .v-cal-event-item.is-overlapping,.v-cal-content.v-cal-content--day .v-cal-days .v-cal-days__wrapper .v-cal-event-item.is-overlapping{flex:none}.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.has-marker::after,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.has-marker::before,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.has-marker::after,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.has-marker::before{content:'';display:block;position:absolute;top:0;left:0;background-color:#3B86FF}.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now::after,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now::after{width:calc(100% + 1px);height:1px}.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now::before,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now::before{width:9px;height:9px;border-radius:50%;-webkit-transform:translate(-50%, -50%);transform:translate(-50%, -50%)}.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-10::after,.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-10::before,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-10::after,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-10::before,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-10::after,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-10::before,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-10::after,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-10::before{top:16.66667%}.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-20::after,.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-20::before,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-20::after,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-20::before,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-20::after,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-20::before,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-20::after,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-20::before{top:33.33333%}.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-30::after,.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-30::before,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-30::after,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-30::before,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-30::after,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-30::before,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-30::after,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-30::before{top:50%}.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-40::after,.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-40::before,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-40::after,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-40::before,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-40::after,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-40::before,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-40::after,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-40::before{top:66.66667%}.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-50::after,.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-50::before,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-50::after,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-50::before,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-50::after,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-50::before,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-50::after,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-50::before{top:83.33333%}.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-60::after,.v-cal-content.v-cal-content--week .v-cal-day .v-cal-day__hour-block.is-now.is-60::before,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-60::after,.v-cal-content.v-cal-content--week .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-60::before,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-60::after,.v-cal-content.v-cal-content--day .v-cal-day .v-cal-day__hour-block.is-now.is-60::before,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-60::after,.v-cal-content.v-cal-content--day .v-cal-day:first-child .v-cal-day__hour-block.is-now.is-60::before{top:100%}.v-cal-content.v-cal-content--week .v-cal-weekdays{max-height:3rem;text-transform:none}.v-cal-content.v-cal-content--week .v-cal-weekdays .v-cal-weekdays__padding{visibility:hidden}.v-cal-content.v-cal-content--week .v-cal-weekdays .v-cal-weekday__wrapper{display:flex;flex-grow:1}.v-cal-content.v-cal-content--week .v-cal-weekdays .v-cal-weekday__wrapper .v-cal-weekday-item{flex-grow:1}.v-cal-content.v-cal-content--day .v-cal-weekdays{display:flex;text-transform:none}.v-cal-content.v-cal-content--day .v-cal-weekdays .v-cal-weekday-item{flex-grow:1}", ""]);
 
 // exports
 
@@ -57502,7 +57575,7 @@ __webpack_require__.r(__webpack_exports__);
     methods: {
         openEventDialog(data) {
             if ( !this.disableDialog ) {
-
+                // quitar el ...
                 const { fields, ...config } = this.eventDialogConfig;
 
                 if ( data instanceof Date ) {
@@ -58159,11 +58232,9 @@ __webpack_require__.r(__webpack_exports__);
                 }
             }
             // Split the array into "chunks" of seven
-            console.log('calendario an',this.calendar)
             this.calendar  = items.map( function( e, i ) {
                 return i % 7 === 0 ? items.slice( i, i + 7 ) : null;
             }).filter( function( e ) { return e; } );
-            console.log('calendario des',this.calendar)
         },
     },
 });
@@ -59137,7 +59208,49 @@ var render = function() {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
-  return _c("div", [_c("toolbar"), _vm._v(" "), _c("router-view")], 1)
+  return _c(
+    "div",
+    [
+      _c("toolbar"),
+      _vm._v(" "),
+      _c("router-view"),
+      _vm._v(" "),
+      _c(
+        "v-footer",
+        {
+          attrs: {
+            height: "32px",
+            color: "primary lighten-1",
+            absolute: "true"
+          }
+        },
+        [
+          _c(
+            "v-layout",
+            { attrs: { "justify-center": "", row: "", wrap: "" } },
+            [
+              _c(
+                "v-flex",
+                {
+                  attrs: {
+                    "py-3": "",
+                    "text-xs-center": "",
+                    grey: "",
+                    "lighten-5": "",
+                    xs12: ""
+                  }
+                },
+                [_vm._v("\n      Sudamericana Seguros SRL\n    ")]
+              )
+            ],
+            1
+          )
+        ],
+        1
+      )
+    ],
+    1
+  )
 }
 var staticRenderFns = []
 render._withStripped = true
@@ -59482,7 +59595,7 @@ var render = function() {
                           on: {
                             click: function($event) {
                               $event.stopPropagation()
-                              return _vm.borrarEvento(_vm.event.id)
+                              return _vm.borrarEvento(_vm.event)
                             }
                           }
                         },
@@ -60310,7 +60423,7 @@ var render = function() {
       ),
       _vm._v(" "),
       _c("v-toolbar-title", [
-        _vm._v("\n\n          " + _vm._s(_vm.titulo) + "\n\n    ")
+        _vm._v("\n           " + _vm._s(_vm.titulo) + "\n    ")
       ]),
       _vm._v(" "),
       _c("v-spacer"),

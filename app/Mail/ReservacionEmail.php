@@ -6,19 +6,21 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use App\Model\Reserva;
 
 class ReservacionEmail extends Mailable
 {
     use Queueable, SerializesModels;
 
+    public $reserva;
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct($reserva)
     {
-        //
+        $this->reserva = $reserva;
     }
 
     /**
@@ -29,6 +31,7 @@ class ReservacionEmail extends Mailable
     public function build()
     {
         return $this->from('info@sudseguros.com')
-                ->view('email_notification');
+                ->view('email_notification')
+                ->subject('Reserva de Ambiente');
     }
 }

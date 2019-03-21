@@ -154,7 +154,7 @@
         methods: {
             openEventDialog(data) {
                 if ( !this.disableDialog ) {
-
+                    // quitar el ...
                     const { fields, ...config } = this.eventDialogConfig;
 
                     if ( data instanceof Date ) {

@@ -20,7 +20,7 @@ class ReservaController extends Controller
      */
     public function __construct()
     {
-        //$this->middleware('JWT');
+        $this->middleware('JWT');
     }
 
     /**
@@ -54,7 +54,7 @@ class ReservaController extends Controller
         $reserva->ambiente_id = $request->ambiente_id;
         $reserva->user_id = $request->user_id;
         $reserva->save();
-        
+        $this->enviarNotificacion($reserva);
         return (new ReservaResource($reserva))->response()->setStatusCode(Response::HTTP_CREATED);
     }
 
@@ -89,6 +89,7 @@ class ReservaController extends Controller
      */
     public function destroy($id)
     {
+
         $destroy = Reserva::destroy($id);
         if ($destroy){
             $data=[
@@ -109,14 +110,15 @@ class ReservaController extends Controller
 
     }
 
-    public function enviarNotificacion(){
+    public function enviarNotificacion($reserva){
         /* $when = now()->addMinutes(1);
         Mail::to("mchoque@coboser.com")->later($when,new ReservacionEmail());
         dump('procesando');
         return 'Mensaje enviado'; */
-        $email = new ReservacionEmail();
+        $email = new ReservacionEmail($reserva);
         Log::info("Request cycle without Queues started");
-        $this->dispatch(new SendEmailJob())->delay(300);
+        //$this->dispatch(new SendEmailJob());
+        Mail::to("mchoque@coboser.com")->send($email);
         Log::info("Request cycle without Queues finished");
     }
 }
