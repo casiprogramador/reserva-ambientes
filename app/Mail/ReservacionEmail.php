@@ -32,6 +32,6 @@ class ReservacionEmail extends Mailable
     {
         return $this->from('info@sudseguros.com')
                 ->view('email_notification')
-                ->subject('Reserva de Ambiente');
+                ->subject('Reserva de Ambiente: '.$this->reserva->ambiente->nombre);
     }
 }

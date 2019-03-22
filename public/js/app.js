@@ -1879,8 +1879,6 @@ __webpack_require__.r(__webpack_exports__);
       this.showEventDialog = true; //this.events = [];
     },
     monthChanged: function monthChanged(newDate) {
-      //console.log('Month Changed');
-      //console.log(newDate.getMonth()+1);
       this.mes = newDate.getMonth() + 1;
       this.cargarEventos(this.mes);
     },
@@ -1895,7 +1893,6 @@ __webpack_require__.r(__webpack_exports__);
         ambiente_id: this.ambiente_id,
         user_id: this.usuario.id
       };
-      console.log(this.fechaPasado(event.date));
 
       if (this.fechaPasado(event.date)) {
         this.$notify({
@@ -1910,7 +1907,8 @@ __webpack_require__.r(__webpack_exports__);
           group: "notificacion",
           title: "Espere un momento",
           text: "Se esta reservando el ambiente ....",
-          type: "warn"
+          type: "warn",
+          duration: 5000
         });
         axios({
           method: "post",
@@ -1920,16 +1918,25 @@ __webpack_require__.r(__webpack_exports__);
             Authorization: "Bearer ".concat(localStorage.getItem("token"))
           }
         }).then(function (res) {
-          console.log("Respuesta Evento Creado", res);
-
           _this.cargarEventos(_this.mes);
 
-          _this.$notify({
-            group: "notificacion",
-            title: "Ambiente Reservado",
-            text: "Se reservo el ambiente exitosamente",
-            type: "success"
-          });
+          if (res.status == 202) {
+            _this.$notify({
+              group: "notificacion",
+              title: "Reservacion Invalida",
+              text: "El ambinete ya se encuentra <br>reservado en ese horario",
+              type: "warn",
+              duration: 10000
+            });
+          } else {
+            _this.$notify({
+              group: "notificacion",
+              title: "Ambiente Reservado",
+              text: "Se reservo el ambiente exitosamente",
+              type: "success",
+              duration: 5000
+            });
+          }
         }).catch(function (error) {
           console.log(error);
 
@@ -1957,8 +1964,7 @@ __webpack_require__.r(__webpack_exports__);
           Authorization: "Bearer ".concat(localStorage.getItem("token"))
         }
       }).then(function (res) {
-        _this2.loading = false; //console.log('token',res)
-
+        _this2.loading = false;
         var events = res.data.data;
         _this2.events = events.map(function (object) {
           object.estilo = object.user_id == User.nameUser().id ? "v-cal-event-item-user" : "v-cal-event-item";
@@ -1982,7 +1988,8 @@ __webpack_require__.r(__webpack_exports__);
           group: "notificacion",
           title: "Reserva Eliminada",
           text: "La reserva se borro exitosamente",
-          type: "success"
+          type: "success",
+          duration: 5000
         });
       } else {
         this.$notify({
@@ -2178,8 +2185,6 @@ __webpack_require__.r(__webpack_exports__);
     borrarEvento: function borrarEvento(event) {
       var _this = this;
 
-      console.log(this.fechaPasado(event.date));
-
       if (this.fechaPasado(event.date)) {
         this.show = false;
         this.$emit('borrarEvento', false);
@@ -2212,7 +2217,6 @@ __webpack_require__.r(__webpack_exports__);
     show: {
       get: function get() {
         this.usuario = User.nameUser();
-        console.log('Usuario Evento', this.usuario);
         return this.value;
       },
       set: function set(value) {
@@ -7441,7 +7445,7 @@ exports = module.exports = __webpack_require__(/*! ../../../node_modules/css-loa
 
 
 // module
-exports.push([module.i, ".v-progress-circular[data-v-052a41a9] {\n  margin: 0rem;\n  position: fixed;\n  left: 50%;\n  top: 2%;\n}", ""]);
+exports.push([module.i, ".v-progress-circular[data-v-052a41a9] {\n  margin: 0rem;\n  position: fixed;\n  left: 50%;\n  top: 2%;\n}\n.notifications[data-v-052a41a9] {\n  font-size: 14px !important;\n}", ""]);
 
 // exports
 
@@ -59217,13 +59221,7 @@ var render = function() {
       _vm._v(" "),
       _c(
         "v-footer",
-        {
-          attrs: {
-            height: "32px",
-            color: "primary lighten-1",
-            absolute: "true"
-          }
-        },
+        { attrs: { height: "32px", color: "primary lighten-1", absolute: "" } },
         [
           _c(
             "v-layout",

@@ -45,17 +45,25 @@ class ReservaController extends Controller
      */
     public function store(Request $request)
     {
-        $reserva = new Reserva;
 
-        $reserva->fecha = $request->fecha;
-        $reserva->hora_inicio = $request->hora_inicio;
-        $reserva->hora_fin = $request->hora_fin;
-        $reserva->motivo = $request->motivo;
-        $reserva->ambiente_id = $request->ambiente_id;
-        $reserva->user_id = $request->user_id;
-        $reserva->save();
-        $this->enviarNotificacion($reserva);
-        return (new ReservaResource($reserva))->response()->setStatusCode(Response::HTTP_CREATED);
+        $reservado = $this->horarioReservado($request);
+        if($reservado){
+            return response(['status'=>0,'message'=>'Reserva ocupada'])->setStatusCode(Response::HTTP_ACCEPTED);
+        }else{
+            $reserva = new Reserva;
+            $reserva->fecha = $request->fecha;
+            $reserva->hora_inicio = $request->hora_inicio;
+            $reserva->hora_fin = $request->hora_fin;
+            $reserva->motivo = $request->motivo;
+            $reserva->ambiente_id = $request->ambiente_id;
+            $reserva->user_id = $request->user_id;
+            $reserva->save();
+            if($reserva){
+                $email_enviado = $this->enviarNotificacion($reserva);
+                return (new ReservaResource($reserva))->response()->setStatusCode(Response::HTTP_CREATED); 
+            }
+        }
+        
     }
 
     /**
@@ -116,9 +124,46 @@ class ReservaController extends Controller
         dump('procesando');
         return 'Mensaje enviado'; */
         $email = new ReservacionEmail($reserva);
-        Log::info("Request cycle without Queues started");
+        //Log::info("Request cycle without Queues started");
         //$this->dispatch(new SendEmailJob());
-        Mail::to("mchoque@coboser.com")->send($email);
-        Log::info("Request cycle without Queues finished");
+        Mail::to(["mchoque@coboser.com","casiprogramador@gmail.com"])->send($email);
+        //Log::info("Request cycle without Queues finished");
+        if (Mail::failures()) {
+            return false;
+        }
+        return true;
+    }
+
+    private function horarioReservado($request){
+        $reservado = false;
+        $reserva_inicial = Reserva::where('fecha',$request->fecha)
+        ->where('ambiente_id',$request->ambiente_id)
+        ->where('hora_inicio','<=',$request->hora_inicio)
+        ->where('hora_fin','>=',$request->hora_inicio)
+        ->count();
+        if($reserva_inicial > 0){
+            $reservado = true;
+        }
+
+        $reserva_final = Reserva::where('fecha',$request->fecha)
+        ->where('ambiente_id',$request->ambiente_id)
+        ->where('hora_inicio','<=',$request->hora_fin)
+        ->where('hora_fin','>=',$request->hora_fin)
+        ->count();
+        if($reserva_final > 0){
+            $reservado = true;
+        }
+
+        $reserva_inicial_final = Reserva::where('fecha',$request->fecha)
+        ->where('ambiente_id',$request->ambiente_id)
+        ->where('hora_inicio','>=',$request->hora_inicio)
+        ->where('hora_fin','<=',$request->hora_fin)
+        ->count();
+        if($reserva_inicial_final > 0){
+            $reservado = true;
+        }
+
+        return $reservado;
+
     }
 }

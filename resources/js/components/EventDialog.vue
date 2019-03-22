@@ -76,7 +76,6 @@ data() {
   },
   methods: {
     borrarEvento(event){
-      console.log(this.fechaPasado(event.date))
       if(this.fechaPasado(event.date)){
           this.show=false
           this.$emit('borrarEvento', false)
@@ -112,7 +111,6 @@ data() {
     show: {
       get () {
         this.usuario = User.nameUser();
-        console.log('Usuario Evento',this.usuario)
         return this.value
       },
       set (value) {

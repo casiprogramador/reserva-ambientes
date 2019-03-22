@@ -5,7 +5,7 @@
       <v-footer
     height="32px"
     color="primary lighten-1"
-    absolute="true"
+    absolute
   >
     <v-layout
       justify-center

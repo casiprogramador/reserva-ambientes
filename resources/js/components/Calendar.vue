@@ -2,7 +2,7 @@
   <div>
     <v-progress-circular indeterminate :size="50" :width="5" color="white" v-if="loading"></v-progress-circular>
 
-    <notifications group="notificacion" position="bottom center"/>
+    <notifications group="notificacion" position="bottom center" />
     <vue-scheduler
       :events="events"
       :event-dialog-config="dialogConfig"
@@ -73,8 +73,6 @@ export default {
       //this.events = [];
     },
     monthChanged(newDate) {
-      //console.log('Month Changed');
-      //console.log(newDate.getMonth()+1);
       this.mes = newDate.getMonth() + 1;
       this.cargarEventos(this.mes);
     },
@@ -88,7 +86,6 @@ export default {
         ambiente_id: this.ambiente_id,
         user_id: this.usuario.id
       };
-      console.log(this.fechaPasado(event.date));
       if (this.fechaPasado(event.date)) {
           this.$notify({
             group: "notificacion",
@@ -103,7 +100,8 @@ export default {
         group: "notificacion",
         title: "Espere un momento",
         text: "Se esta reservando el ambiente ....",
-        type: "warn"
+        type: "warn",
+        duration: 5000
       });
         axios({
           method: "post",
@@ -114,14 +112,24 @@ export default {
           }
         })
           .then(res => {
-            console.log("Respuesta Evento Creado", res);
-            this.cargarEventos(this.mes);
-            this.$notify({
-              group: "notificacion",
-              title: "Ambiente Reservado",
-              text: "Se reservo el ambiente exitosamente",
-              type: "success"
-            });
+                this.cargarEventos(this.mes);
+              if(res.status == 202){
+              this.$notify({
+                group: "notificacion",
+                title: "Reservacion Invalida",
+                text: "El ambinete ya se encuentra <br>reservado en ese horario",
+                type: "warn",
+                duration: 10000
+              });
+            }else{
+              this.$notify({
+                group: "notificacion",
+                title: "Ambiente Reservado",
+                text: "Se reservo el ambiente exitosamente",
+                type: "success",
+                duration: 5000,
+              });
+            }
           })
           .catch(error => {
             console.log(error);
@@ -149,7 +157,6 @@ export default {
         })
         .then(res => {
           this.loading = false;
-          //console.log('token',res)
           let events = res.data.data;
           this.events = events.map(function(object) {
             object.estilo =
@@ -175,7 +182,8 @@ export default {
           group: "notificacion",
           title: "Reserva Eliminada",
           text: "La reserva se borro exitosamente",
-          type: "success"
+          type: "success",
+          duration: 5000,
         });
       } else {
         this.$notify({
@@ -183,6 +191,7 @@ export default {
           title: "Reserva sin eliminar",
           text: "No se pudo eliminar la reserva",
           type: "error"
+
         });
       }
       this.cargarEventos(this.mes);
@@ -204,4 +213,7 @@ export default {
     position: fixed
     left: 50%
     top: 2%
+.notifications
+  font-size: 14px !important
+
 </style>
