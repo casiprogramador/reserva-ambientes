@@ -59238,7 +59238,11 @@ var render = function() {
                     xs12: ""
                   }
                 },
-                [_vm._v("\n      Sudamericana Seguros SRL\n    ")]
+                [
+                  _vm._v(
+                    "\n      Reserva de Ambientes https://www.youtube.com/casiprogramador\n    "
+                  )
+                ]
               )
             ],
             1

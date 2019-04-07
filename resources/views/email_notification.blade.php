@@ -15,9 +15,6 @@ Por favor tomar en cuenta la fecha y horario para no crear ningún contratiempo.
     <b>HORAS:</b> {{$reserva->hora_inicio}} a {{$reserva->hora_fin}} <br>
     <b>Usuario:</b> {{$reserva->user->name}} <br>
     </p>
-    <img src="{{ asset('/img/sala-reunion.jpg') }}" />
-    <br>
-    <p><a href="http://reserva-ambientes.test">Ver Cronograma de Reservaciones</a></p>
     </div>
     
 </body>

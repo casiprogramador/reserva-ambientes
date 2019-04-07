@@ -19,7 +19,7 @@
         grey lighten-5
         xs12
       >
-        Sudamericana Seguros SRL
+        Reserva de Ambientes https://www.youtube.com/casiprogramador
       </v-flex>
     </v-layout>
   </v-footer>

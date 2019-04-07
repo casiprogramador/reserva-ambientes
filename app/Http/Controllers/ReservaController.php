@@ -59,7 +59,7 @@ class ReservaController extends Controller
             $reserva->user_id = $request->user_id;
             $reserva->save();
             if($reserva){
-                $email_enviado = $this->enviarNotificacion($reserva);
+                //$email_enviado = $this->enviarNotificacion($reserva);
                 return (new ReservaResource($reserva))->response()->setStatusCode(Response::HTTP_CREATED); 
             }
         }
